@@ -1,0 +1,3501 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Align">
+<meta name="theme-color" content="#1a1814">
+<title>Align · 力线康复</title>
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="manifest" href="manifest.json">
+
+<style>
+/* ============ 字体 ============ */
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=Inter:wght@400;500;600&display=swap');
+
+/* ============ 基础 ============ */
+:root {
+  --bg: #f5f1e8;
+  --bg-elev: #fbf8f1;
+  --bg-card: #ffffff;
+  --ink: #1a1814;
+  --ink-soft: #5a5448;
+  --ink-faint: #9a9284;
+  --line: #e5dfd0;
+  --line-soft: #ede8dc;
+  --accent: #8b2e1a;
+  --accent-soft: #f4e6df;
+  --warn: #b8871c;
+  --warn-soft: #faf1d9;
+  --success: #4a6b3a;
+  --success-soft: #eaf0e0;
+  --shadow: 0 1px 3px rgba(26,24,20,0.04), 0 4px 16px rgba(26,24,20,0.04);
+
+  --safe-top: env(safe-area-inset-top);
+  --safe-bottom: env(safe-area-inset-bottom);
+
+  --font-display: 'Fraunces', Georgia, serif;
+  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.55;
+  overscroll-behavior-y: contain;
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  min-height: 100vh;
+  min-height: -webkit-fill-available;
+  padding-bottom: calc(72px + var(--safe-bottom));
+}
+
+button {
+  font-family: inherit;
+  font-size: inherit;
+  cursor: pointer;
+  border: none;
+  background: none;
+  color: inherit;
+  padding: 0;
+}
+
+input, textarea {
+  font-family: inherit;
+  font-size: inherit;
+  color: inherit;
+}
+
+/* ============ 顶部状态条 ============ */
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--bg);
+  padding: calc(var(--safe-top) + 16px) 20px 12px;
+  border-bottom: 1px solid var(--line);
+}
+
+.header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.header-title {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 28px;
+  letter-spacing: -0.02em;
+  font-style: italic;
+  margin: 0;
+}
+
+.header-meta {
+  font-size: 12px;
+  color: var(--ink-faint);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-weight: 500;
+}
+
+.header-sub {
+  font-size: 13px;
+  color: var(--ink-soft);
+  margin-top: 2px;
+}
+
+/* ============ 页面容器 ============ */
+.page {
+  padding: 20px;
+  animation: pageIn 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.page.hidden { display: none; }
+
+@keyframes pageIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ============ 分组区块 ============ */
+.section {
+  margin-bottom: 28px;
+}
+
+.section-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+  padding-left: 2px;
+}
+
+.section-label-num {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 13px;
+  color: var(--ink-faint);
+  font-variant-numeric: tabular-nums;
+}
+
+.section-label-text {
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+.section-label-time {
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--ink-faint);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* ============ 动作卡片 ============ */
+.exercise-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.exercise-item {
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.exercise-item.done {
+  background: var(--success-soft);
+  border-color: transparent;
+}
+
+.exercise-item.done .exercise-name {
+  color: var(--ink-soft);
+  text-decoration: line-through;
+  text-decoration-color: var(--ink-faint);
+  text-decoration-thickness: 1px;
+}
+
+.checkbox {
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1.5px solid var(--ink-faint);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  background: transparent;
+}
+
+.checkbox:active { transform: scale(0.9); }
+
+.exercise-item.done .checkbox {
+  background: var(--success);
+  border-color: var(--success);
+}
+
+.checkbox svg {
+  width: 12px;
+  height: 12px;
+  stroke: white;
+  stroke-width: 3;
+  fill: none;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.exercise-item.done .checkbox svg { opacity: 1; }
+
+.exercise-body {
+  flex: 1;
+  min-width: 0;
+  cursor: pointer;
+}
+
+.exercise-name {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--ink);
+  letter-spacing: -0.01em;
+}
+
+.exercise-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 2px;
+  font-size: 12px;
+  color: var(--ink-faint);
+  font-variant-numeric: tabular-nums;
+}
+
+.exercise-arrow {
+  flex-shrink: 0;
+  color: var(--ink-faint);
+  font-size: 18px;
+  line-height: 1;
+}
+
+/* 分组进度按钮 - 替代 checkbox */
+.set-progress {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 48px;
+  padding: 6px 8px;
+  border-radius: 10px;
+  background: var(--bg-elev);
+  border: 1.5px solid var(--line);
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.set-progress:active {
+  transform: scale(0.92);
+}
+
+.set-progress.partial {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.set-progress.complete {
+  background: var(--success);
+  border-color: var(--success);
+  color: white;
+}
+
+.set-progress-fill {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  background: var(--accent);
+  opacity: 0.12;
+  transition: height 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+  pointer-events: none;
+}
+
+.set-progress.complete .set-progress-fill {
+  display: none;
+}
+
+.set-progress-text {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+  position: relative;
+  z-index: 1;
+}
+
+.set-progress-label {
+  font-size: 9px;
+  color: var(--ink-faint);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin-top: 1px;
+  position: relative;
+  z-index: 1;
+}
+
+.set-progress.complete .set-progress-text,
+.set-progress.complete .set-progress-label {
+  color: white;
+}
+
+.set-progress.partial .set-progress-text {
+  color: var(--accent);
+}
+
+/* 长按重置提示 */
+.set-progress.resettable::after {
+  content: "";
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+/* 训练动作的次数提示(显示在 meta 行) */
+.exercise-meta .reps-display {
+  color: var(--ink-soft);
+}
+
+/* 质量分显示 */
+.quality-dots {
+  display: inline-flex;
+  gap: 3px;
+  margin-left: 6px;
+}
+
+.quality-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--line);
+}
+
+.quality-dot.filled { background: var(--accent); }
+
+/* ============ 底部 Tab 栏 ============ */
+.tabbar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 20;
+  background: rgba(251, 248, 241, 0.92);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  border-top: 1px solid var(--line);
+  padding: 8px 0 var(--safe-bottom);
+  display: flex;
+  justify-content: space-around;
+}
+
+.tab {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 0;
+  color: var(--ink-faint);
+  transition: color 0.15s ease;
+}
+
+.tab.active { color: var(--accent); }
+
+.tab-icon {
+  width: 22px;
+  height: 22px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.5;
+}
+
+.tab-label {
+  font-size: 10px;
+  margin-top: 3px;
+  letter-spacing: 0.04em;
+  font-weight: 500;
+}
+
+/* ============ 详情页 ============ */
+.detail-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: var(--bg);
+  overflow-y: auto;
+  transform: translateY(100%);
+  transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.detail-overlay.open { transform: translateY(0); }
+
+.detail-header {
+  position: sticky;
+  top: 0;
+  background: var(--bg);
+  padding: calc(var(--safe-top) + 12px) 20px 12px;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  z-index: 1;
+}
+
+.back-btn {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: -8px;
+  border-radius: 50%;
+}
+
+.back-btn:active { background: var(--line-soft); }
+
+.back-btn svg {
+  width: 20px;
+  height: 20px;
+  stroke: var(--ink);
+  fill: none;
+  stroke-width: 2;
+}
+
+.detail-headline { flex: 1; }
+
+.detail-category {
+  font-size: 11px;
+  color: var(--ink-faint);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-weight: 500;
+}
+
+.detail-title {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+  margin-top: 2px;
+}
+
+.detail-body {
+  padding: 24px 20px 100px;
+}
+
+.detail-hero {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 15px;
+  color: var(--ink-soft);
+  line-height: 1.5;
+  padding: 16px 18px;
+  background: var(--bg-elev);
+  border-left: 2px solid var(--accent);
+  margin-bottom: 24px;
+  border-radius: 0 8px 8px 0;
+}
+
+.detail-block {
+  margin-bottom: 24px;
+}
+
+.block-label {
+  font-size: 11px;
+  color: var(--ink-faint);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 600;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.block-label::before {
+  content: "";
+  width: 12px;
+  height: 1px;
+  background: var(--ink-faint);
+}
+
+.block-content {
+  font-size: 15px;
+  color: var(--ink);
+  line-height: 1.6;
+}
+
+.segment-card {
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 14px 16px;
+  margin-bottom: 8px;
+}
+
+.segment-name {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 15px;
+  color: var(--accent);
+  margin-bottom: 4px;
+}
+
+.segment-loc {
+  font-size: 13px;
+  color: var(--ink-soft);
+  margin-bottom: 6px;
+}
+
+.segment-feel {
+  font-size: 13px;
+  color: var(--ink);
+  padding-top: 6px;
+  border-top: 1px dashed var(--line);
+}
+
+.segment-feel::before {
+  content: "感受 · ";
+  color: var(--ink-faint);
+  font-weight: 500;
+}
+
+.callout {
+  padding: 14px 16px;
+  border-radius: 10px;
+  font-size: 14px;
+  line-height: 1.55;
+  margin-bottom: 12px;
+}
+
+.callout.key {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.callout.warn {
+  background: var(--warn-soft);
+  color: #7d5c10;
+}
+
+.callout-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+/* 详情页底部完成按钮 */
+.detail-action {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 16px 20px calc(16px + var(--safe-bottom));
+  background: linear-gradient(to top, var(--bg) 70%, transparent);
+  z-index: 2;
+}
+
+.btn-primary {
+  width: 100%;
+  background: var(--ink);
+  color: var(--bg);
+  padding: 16px;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  transition: transform 0.15s ease;
+}
+
+.btn-primary:active { transform: scale(0.98); }
+
+.btn-primary.done {
+  background: var(--success);
+}
+
+/* ============ 质量分弹窗 ============ */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: rgba(26,24,20,0.4);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+.modal-backdrop.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.modal {
+  width: 100%;
+  max-width: 480px;
+  background: var(--bg-elev);
+  border-radius: 20px 20px 0 0;
+  padding: 24px 20px calc(24px + var(--safe-bottom));
+  transform: translateY(100%);
+  transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.modal-backdrop.open .modal {
+  transform: translateY(0);
+}
+
+.modal-title {
+  font-family: var(--font-display);
+  font-size: 19px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  margin-bottom: 4px;
+}
+
+.modal-sub {
+  font-size: 13px;
+  color: var(--ink-soft);
+  margin-bottom: 20px;
+}
+
+.quality-picker {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.quality-option {
+  flex: 1;
+  padding: 16px 8px;
+  border: 1.5px solid var(--line);
+  border-radius: 12px;
+  background: var(--bg-card);
+  text-align: center;
+  transition: all 0.15s ease;
+}
+
+.quality-option.selected {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.quality-option:active { transform: scale(0.96); }
+
+.quality-num {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 500;
+  color: var(--accent);
+  line-height: 1;
+}
+
+.quality-label {
+  font-size: 11px;
+  color: var(--ink-soft);
+  margin-top: 4px;
+  letter-spacing: 0.02em;
+}
+
+/* ============ 计划页 ============ */
+.phase-card {
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 20px;
+  margin-bottom: 14px;
+  transition: all 0.15s ease;
+}
+
+.phase-card.current {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.phase-num {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 13px;
+  color: var(--ink-faint);
+  margin-bottom: 4px;
+}
+
+.phase-name {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  margin-bottom: 4px;
+}
+
+.phase-weeks {
+  font-size: 12px;
+  color: var(--ink-faint);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+
+.phase-goal {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 14px;
+  color: var(--ink-soft);
+  line-height: 1.5;
+  margin-bottom: 12px;
+}
+
+.phase-counts {
+  display: flex;
+  gap: 16px;
+  padding-top: 12px;
+  border-top: 1px dashed var(--line);
+  font-size: 12px;
+  color: var(--ink-soft);
+}
+
+.phase-counts b {
+  font-family: var(--font-display);
+  font-weight: 500;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.phase-switch {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 16px;
+  padding: 4px;
+  background: var(--line-soft);
+  border-radius: 10px;
+}
+
+.phase-switch button {
+  flex: 1;
+  padding: 8px;
+  border-radius: 7px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink-soft);
+  transition: all 0.15s ease;
+}
+
+.phase-switch button.active {
+  background: var(--bg);
+  color: var(--ink);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+/* ============ 历史页 ============ */
+.streak-card {
+  background: var(--ink);
+  color: var(--bg);
+  padding: 20px;
+  border-radius: 14px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.streak-num {
+  font-family: var(--font-display);
+  font-size: 48px;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+
+.streak-label {
+  font-size: 12px;
+  color: rgba(245,241,232,0.7);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-top: 4px;
+}
+
+.streak-emoji {
+  font-size: 40px;
+}
+
+.calendar {
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 18px;
+  margin-bottom: 20px;
+}
+
+.calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.calendar-title {
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 500;
+}
+
+.calendar-nav {
+  display: flex;
+  gap: 4px;
+}
+
+.calendar-nav button {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  color: var(--ink-soft);
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.calendar-nav button:active { background: var(--line-soft); }
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+
+.calendar-weekday {
+  text-align: center;
+  font-size: 10px;
+  color: var(--ink-faint);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 4px 0 8px;
+  font-weight: 500;
+}
+
+.calendar-day {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  color: var(--ink-soft);
+  border-radius: 6px;
+  position: relative;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+}
+
+.calendar-day.empty { visibility: hidden; }
+.calendar-day.today {
+  outline: 1.5px solid var(--accent);
+  outline-offset: -1.5px;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.calendar-day.lv-0 { background: transparent; }
+.calendar-day.lv-1 { background: #f0e6d8; }
+.calendar-day.lv-2 { background: #e0c5a2; }
+.calendar-day.lv-3 { background: #c28b56; color: white; }
+.calendar-day.lv-4 { background: #8b4a20; color: white; }
+
+.history-chart {
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 18px;
+  margin-bottom: 20px;
+}
+
+.chart-title {
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 500;
+  margin-bottom: 16px;
+}
+
+.chart-svg {
+  width: 100%;
+  height: 180px;
+}
+
+.chart-legend {
+  display: flex;
+  gap: 16px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--ink-soft);
+}
+
+.legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+/* ============ 感受日记 ============ */
+.mood-card {
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 18px;
+  margin-top: 8px;
+}
+
+.mood-row {
+  margin-bottom: 18px;
+}
+
+.mood-row:last-child { margin-bottom: 0; }
+
+.mood-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 8px;
+}
+
+.mood-label-text {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.mood-label-val {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+
+.mood-slider {
+  width: 100%;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 6px;
+  background: var(--line);
+  border-radius: 3px;
+  outline: none;
+}
+
+.mood-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--accent);
+  cursor: pointer;
+  border: 3px solid var(--bg-card);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+
+.mood-note {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 12px;
+  font-size: 14px;
+  line-height: 1.55;
+  background: var(--bg-elev);
+  resize: none;
+  outline: none;
+  color: var(--ink);
+  margin-top: 12px;
+}
+
+.mood-note:focus { border-color: var(--accent); }
+
+/* ============ 我的页 ============ */
+.settings-group {
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  margin-bottom: 16px;
+  overflow: hidden;
+}
+
+.settings-row {
+  display: flex;
+  align-items: center;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--line-soft);
+  gap: 12px;
+}
+
+.settings-row:last-child { border-bottom: none; }
+
+.settings-label {
+  flex: 1;
+  font-size: 14px;
+}
+
+.settings-value {
+  font-size: 14px;
+  color: var(--ink-faint);
+  font-variant-numeric: tabular-nums;
+}
+
+.btn-ghost {
+  width: 100%;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--bg-card);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--ink);
+  margin-bottom: 8px;
+}
+
+.btn-ghost:active { background: var(--line-soft); }
+
+.btn-ghost.danger { color: var(--accent); }
+
+.about-note {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--ink-soft);
+  padding: 20px 4px;
+  text-align: center;
+}
+
+/* ============ 完成庆祝 ============ */
+@keyframes celebrate {
+  0% { transform: scale(0.5); opacity: 0; }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.celebrate-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: rgba(26,24,20,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.celebrate-overlay.show {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.celebrate-card {
+  background: var(--bg-elev);
+  padding: 40px 32px;
+  border-radius: 20px;
+  text-align: center;
+  max-width: 300px;
+  margin: 20px;
+  animation: celebrate 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.celebrate-icon {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 48px;
+  color: var(--accent);
+  line-height: 1;
+  margin-bottom: 16px;
+}
+
+.celebrate-title {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  margin-bottom: 8px;
+}
+
+.celebrate-sub {
+  font-size: 13px;
+  color: var(--ink-soft);
+  line-height: 1.5;
+}
+
+/* ============ 空状态 ============ */
+.empty-state {
+  text-align: center;
+  padding: 48px 20px;
+  color: var(--ink-faint);
+}
+
+.empty-title {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 18px;
+  margin-bottom: 8px;
+}
+
+.empty-sub {
+  font-size: 13px;
+}
+
+/* ============ 细节装饰 ============ */
+.divider-deco {
+  text-align: center;
+  color: var(--ink-faint);
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 14px;
+  margin: 32px 0 16px;
+  letter-spacing: 0.2em;
+}
+
+/* ============ 编辑模式 ============ */
+.edit-toggle {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  margin-right: -8px;
+}
+.edit-toggle:active { background: var(--line-soft); }
+.edit-toggle svg {
+  width: 18px;
+  height: 18px;
+  stroke: var(--ink-soft);
+  fill: none;
+  stroke-width: 1.8;
+}
+.edit-toggle.active {
+  background: var(--accent-soft);
+}
+.edit-toggle.active svg {
+  stroke: var(--accent);
+}
+
+.edit-input {
+  width: 100%;
+  border: 1px dashed var(--accent);
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: var(--bg-elev);
+  font-family: inherit;
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--ink);
+  outline: none;
+  resize: vertical;
+  min-height: 44px;
+  margin-top: 4px;
+}
+
+.edit-input:focus {
+  border-style: solid;
+  background: var(--bg-card);
+}
+
+.edit-input.small {
+  font-size: 14px;
+  min-height: 36px;
+}
+
+.edit-input.title {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 15px;
+  color: var(--accent);
+  background: var(--bg-card);
+}
+
+.segment-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px dashed var(--line);
+}
+
+.btn-mini {
+  font-size: 12px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: var(--bg-elev);
+  color: var(--ink-soft);
+  border: 1px solid var(--line);
+}
+.btn-mini:active { background: var(--line-soft); }
+.btn-mini.danger { color: var(--accent); }
+
+.btn-add-segment {
+  width: 100%;
+  padding: 12px;
+  border: 1px dashed var(--ink-faint);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--ink-soft);
+  font-size: 14px;
+  margin-top: 8px;
+}
+.btn-add-segment:active { background: var(--bg-elev); }
+
+.edit-saved-badge {
+  display: inline-block;
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-weight: 600;
+  margin-left: 6px;
+  vertical-align: middle;
+}
+
+.edit-duration-input {
+  width: 100px;
+  padding: 6px 8px;
+  border: 1px dashed var(--accent);
+  border-radius: 6px;
+  background: var(--bg-elev);
+  font-family: inherit;
+  font-size: 13px;
+}
+
+/* ============ 计时器 ============ */
+.timer-section {
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+}
+
+.timer-display {
+  text-align: center;
+  padding: 32px 16px 24px;
+  background: var(--bg-card);
+  border-radius: 16px;
+  margin-bottom: 16px;
+  position: relative;
+  overflow: hidden;
+}
+
+.timer-display.running {
+  background: var(--ink);
+  color: var(--bg);
+  box-shadow: 0 4px 24px rgba(26,24,20,0.15);
+}
+
+.timer-display.alerting {
+  animation: alertFlash 0.4s ease-in-out infinite alternate;
+}
+
+@keyframes alertFlash {
+  from { background: var(--accent); }
+  to { background: var(--ink); }
+}
+
+.timer-time {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 64px;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  font-variant-numeric: tabular-nums;
+  margin-bottom: 8px;
+}
+
+.timer-subtext {
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.6;
+  font-weight: 500;
+}
+
+.timer-progress-ring {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 28px;
+  height: 28px;
+}
+
+.timer-progress-ring circle {
+  fill: none;
+  stroke-width: 2;
+  cx: 14;
+  cy: 14;
+  r: 12;
+  transform: rotate(-90deg);
+  transform-origin: center;
+  transition: stroke-dashoffset 0.5s linear;
+}
+
+.timer-current-cue {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 16px;
+  margin-top: 12px;
+  opacity: 0.9;
+}
+
+.timer-controls {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.timer-btn {
+  flex: 1;
+  padding: 14px;
+  border-radius: 10px;
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.timer-btn:active { transform: scale(0.97); }
+
+.timer-btn.primary {
+  background: var(--ink);
+  color: var(--bg);
+  border-color: var(--ink);
+  flex: 2;
+}
+
+.timer-btn.danger {
+  color: var(--accent);
+}
+
+.timer-config {
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.timer-config-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.timer-config-row:last-child { border-bottom: none; }
+
+.timer-config-label {
+  font-size: 14px;
+  color: var(--ink);
+}
+
+.timer-config-hint {
+  font-size: 11px;
+  color: var(--ink-faint);
+  margin-top: 2px;
+}
+
+.duration-stepper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.stepper-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  background: var(--line-soft);
+  font-size: 16px;
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.stepper-val {
+  min-width: 60px;
+  text-align: center;
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+.cue-presets {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+
+.cue-chip {
+  padding: 6px 12px;
+  border-radius: 16px;
+  background: var(--bg-elev);
+  border: 1px solid var(--line);
+  font-size: 12px;
+  color: var(--ink-soft);
+}
+
+.cue-chip.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--bg);
+}
+
+.cue-list {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.cue-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  background: var(--bg-elev);
+  border-radius: 8px;
+  font-size: 13px;
+}
+
+.cue-item-time {
+  font-family: var(--font-display);
+  font-weight: 500;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+  min-width: 48px;
+}
+
+.cue-item-text {
+  flex: 1;
+  color: var(--ink-soft);
+}
+
+.cue-item-del {
+  color: var(--ink-faint);
+  padding: 4px 6px;
+}
+
+.wakelock-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  padding: 3px 8px;
+  border-radius: 8px;
+  background: var(--success-soft);
+  color: var(--success);
+  margin-left: 6px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+/* 闹钟全屏覆盖 */
+.alarm-fullscreen {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  background: var(--accent);
+  color: white;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  text-align: center;
+  animation: alarmPulse 0.5s ease-in-out infinite alternate;
+}
+
+.alarm-fullscreen.show { display: flex; }
+
+@keyframes alarmPulse {
+  from { background: #8b2e1a; }
+  to { background: #c43a20; }
+}
+
+.alarm-icon {
+  font-family: var(--font-display);
+  font-size: 80px;
+  font-style: italic;
+  line-height: 1;
+  margin-bottom: 24px;
+}
+
+.alarm-title {
+  font-family: var(--font-display);
+  font-size: 32px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  margin-bottom: 12px;
+}
+
+.alarm-sub {
+  font-size: 16px;
+  opacity: 0.9;
+  margin-bottom: 40px;
+  font-family: var(--font-display);
+  font-style: italic;
+}
+
+.alarm-dismiss {
+  background: white;
+  color: var(--accent);
+  padding: 18px 48px;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+</style>
+</head>
+<body>
+
+<!-- ============ 顶部状态条 ============ -->
+<div class="header">
+  <div class="header-row">
+    <h1 class="header-title">Align<span id="headerSub"></span></h1>
+    <div style="text-align: right;">
+      <div class="header-meta" id="phaseLabel">Phase 1 · Week 1</div>
+      <div class="header-sub" id="dateLabel"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 今日页 ============ -->
+<div class="page" id="page-today"></div>
+
+<!-- ============ 计划页 ============ -->
+<div class="page hidden" id="page-plan"></div>
+
+<!-- ============ 历史页 ============ -->
+<div class="page hidden" id="page-history"></div>
+
+<!-- ============ 我的页 ============ -->
+<div class="page hidden" id="page-settings"></div>
+
+<!-- ============ 详情页 ============ -->
+<div class="detail-overlay" id="detailOverlay">
+  <div class="detail-header">
+    <button class="back-btn" onclick="closeDetail()">
+      <svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    <div class="detail-headline">
+      <div class="detail-category" id="detailCat"></div>
+      <div class="detail-title" id="detailTitle"></div>
+    </div>
+    <button class="edit-toggle" id="editToggle" onclick="toggleEditMode()">
+      <svg viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+  </div>
+  <div class="detail-body" id="detailBody"></div>
+  <div class="detail-action">
+    <button class="btn-primary" id="detailActionBtn" onclick="toggleFromDetail()">标记完成</button>
+  </div>
+</div>
+
+<!-- ============ 闹钟全屏 ============ -->
+<div class="alarm-fullscreen" id="alarmFullscreen">
+  <div class="alarm-icon">⏰</div>
+  <div class="alarm-title" id="alarmTitle">时间到</div>
+  <div class="alarm-sub" id="alarmSub"></div>
+  <button class="alarm-dismiss" onclick="dismissAlarm()">关闭</button>
+</div>
+
+<!-- ============ 质量分弹窗 ============ -->
+<div class="modal-backdrop" id="qualityModal">
+  <div class="modal">
+    <div class="modal-title">找到目标肌肉了吗?</div>
+    <div class="modal-sub" id="qualityModalSub">这次训练的感受质量</div>
+    <div class="quality-picker">
+      <button class="quality-option" data-q="1" onclick="submitQuality(1)">
+        <div class="quality-num">1</div>
+        <div class="quality-label">没找到</div>
+      </button>
+      <button class="quality-option" data-q="2" onclick="submitQuality(2)">
+        <div class="quality-num">2</div>
+        <div class="quality-label">有点感觉</div>
+      </button>
+      <button class="quality-option" data-q="3" onclick="submitQuality(3)">
+        <div class="quality-num">3</div>
+        <div class="quality-label">找得很准</div>
+      </button>
+    </div>
+    <div style="text-align:center; font-size:12px; color:var(--ink-faint); margin-top:4px;">点击即完成 · 滑下取消</div>
+  </div>
+</div>
+
+<!-- ============ 庆祝 ============ -->
+<div class="celebrate-overlay" id="celebrateOverlay">
+  <div class="celebrate-card">
+    <div class="celebrate-icon">✓</div>
+    <div class="celebrate-title">今日完成</div>
+    <div class="celebrate-sub" id="celebrateSub"></div>
+  </div>
+</div>
+
+<!-- ============ 底部 Tab 栏 ============ -->
+<nav class="tabbar">
+  <button class="tab active" data-tab="today" onclick="switchTab('today')">
+    <svg class="tab-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+    <div class="tab-label">今日</div>
+  </button>
+  <button class="tab" data-tab="plan" onclick="switchTab('plan')">
+    <svg class="tab-icon" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h4"/></svg>
+    <div class="tab-label">计划</div>
+  </button>
+  <button class="tab" data-tab="history" onclick="switchTab('history')">
+    <svg class="tab-icon" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+    <div class="tab-label">历史</div>
+  </button>
+  <button class="tab" data-tab="settings" onclick="switchTab('settings')">
+    <svg class="tab-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    <div class="tab-label">我的</div>
+  </button>
+</nav>
+
+<script>
+/* ============================================================
+   动作库数据
+============================================================ */
+const EXERCISES = {
+  sacroiliac: { id:"sacroiliac", category:"morning", name:"骶髂关节自我松动", duration:"5 分钟", position:"起床前在床上做,仰卧", instruction:"左膝屈 90 度抱向右肩方向(对角线),拉到张力点保持 5 秒 → 用 30% 力量往左下方蹬自己的手(等长收缩)保持 10 秒 → 放松再深拉一点 → 重复 4 次。", keyPoint:"张力点 → 等长收缩 → 再深拉,是 PNF 技术的核心节奏。", warning:"有尖锐疼痛或弹响伴疼痛 → 立刻停止,找专业评估。" },
+  breathing90: { id:"breathing90", category:"morning", name:"90-90 呼吸", duration:"3 分钟", position:"仰卧,小腿放在凳子或沙发上,膝髋都 90 度", instruction:"深呼吸,呼气时:肋骨下沉、骨盆微后倾、腰贴地。重建核心-骨盆连接。", keyPoint:"重点在呼气的质量,不是吸气。每次呼气都感觉腰多贴地一点。" },
+
+  adductor: { id:"adductor", category:"release", name:"左侧内收肌松解", duration:"3-5 分钟", tool:"泡沫轴(粗糙面更好)", position:"俯卧,左腿外展 90 度(青蛙腿),大腿内侧压在泡沫轴上",
+    segments:[
+      {name:"上段",location:"耻骨附近到大腿内侧 1/3",feeling:"大腿根内侧深处,可能传到耻骨或\"牵扯到骨盆里面\"的感觉"},
+      {name:"中段",location:"大腿内侧中间",feeling:"内侧表层和深层条索状酸痛,常有硬结"},
+      {name:"下段",location:"膝盖内侧上方",feeling:"膝内侧上方 10cm,可能连到膝关节内侧"}
+    ],
+    keyPoint:"左侧比右侧酸 2-3 倍。找最痛 2-3 个点,每点停留 30 秒。", warning:"避免压耻骨和膝盖内侧肌腱附着点。" },
+
+  iliopsoas: { id:"iliopsoas", category:"release", name:"左侧髂腰肌松解", duration:"2-3 分钟", tool:"徒手按压(四指指腹)优于筋膜球", position:"仰卧屈膝放松腹部", instruction:"找到左侧髂前上棘(髂骨最前凸出骨点)→ 往肚脐方向 2-3 指 → 再往下 1-2 指 → 慢慢按进去。", feeling:"左下腹深处闷胀、说不出的酸(髂肌)。往大腿方向按:酸感传到大腿根前侧、腹股沟深处(腰大肌延伸)。有时传到下背深处。", keyPoint:"按住后保持,让左腿小幅屈伸几次,被动拉长 + 按压效果翻倍。", warning:"锐利刺痛、搏动感、大腿前侧放电样麻 → 立刻松手。此处靠近腹主动脉和股神经,宁可浅不可深。" },
+
+  tfl: { id:"tfl", category:"release", name:"左侧股直肌 + 阔筋膜张肌", duration:"2-3 分钟", tool:"泡沫轴", position:"俯卧,泡沫轴放左大腿前外侧下方",
+    segments:[
+      {name:"股直肌",location:"大腿正前方偏内,从髂前上棘下方滚到膝盖,重点在上 1/3",feeling:"大腿根前侧下 5-10cm 深层酸痛,左侧明显紧"},
+      {name:"阔筋膜张肌 TFL",location:"髂前上棘往外下一点,髋关节前外侧的\"小凸起\"。身体稍侧向外侧让泡沫轴压到这里",feeling:"髋外前侧一个点的强烈酸胀,可能放射到大腿外侧上段(髂胫束起点)"}
+    ],
+    keyPoint:"TFL 是骨盆前旋主谋之一。找到后停留 1 分钟以上,配合深呼吸。" },
+
+  ql: { id:"ql", category:"release", name:"左侧腰方肌 + 背阔肌下束", duration:"3-5 分钟", tool:"筋膜球(不用泡沫轴,定位不够准)", position:"仰卧屈膝",
+    segments:[
+      {name:"腰方肌",location:"球放第 3-5 腰椎横突旁开 2-3 指(腰部最凹陷处往外两指,肋骨下缘到髂嵴之间)。不是压脊柱骨头,是压骨头外侧那片肌肉",feeling:"左侧下背深处\"终于压到了\"的酸爽感,可能传到髂嵴上方或最下一根肋骨下缘。左侧会有明显硬结"},
+      {name:"背阔肌下束",location:"球移到腋下往髂嵴方向那条侧线,胸罩带位置往下到腰部,脊柱外侧 3-4 指。侧卧压球,手臂举过头",feeling:"左侧肋骨外侧面酸胀,左腋下到髂嵴的紧绷被按开。手臂举过头时酸感变强 = 压对了"}
+    ],
+    keyPoint:"腰方肌每次至少 3 分钟。找到最痛点后配合缓慢骨盆后倾,主动-被动结合。" },
+
+  glutemed: { id:"glutemed", category:"release", name:"左侧臀中肌上束 + 梨状肌", duration:"2-3 分钟", tool:"网球或小号筋膜球", position:"仰卧屈膝",
+    segments:[
+      {name:"臀中肌上束",location:"髂嵴正下方往外侧,叉腰时大拇指位置再往下 2-3 指。身体侧向球那侧",feeling:"臀部外上方深层的点酸感清晰,有时传到髋关节外侧(大转子上方)"},
+      {name:"梨状肌",location:"球移到臀部中央偏外下,髋关节正后方。左脚踝架右膝上(4 字腿)辅助",feeling:"臀部深处非常深的酸痛点,可能往大腿后侧上段或骶骨放射"}
+    ],
+    warning:"电麻感顺大腿后侧往下到小腿 → 压到坐骨神经,立刻偏移位置。" },
+
+  hamstring: { id:"hamstring", category:"release", name:"左侧腘绳肌下段松解", duration:"2 分钟", tool:"泡沫轴", position:"坐地上,左腿伸直放在泡沫轴上,右腿屈膝踩地,双手撑地", instruction:"重点膝窝往上 5-10cm,不滚到坐骨附近。", feeling:"膝窝上方大腿后侧偏下深层酸痛(正是你的代偿发力点)。内外侧都有痛点,左外侧通常更紧。", keyPoint:"找到痛点停留 → 脚踝勾-绷 5-8 次(主动收缩放松),效果优于静压。" },
+
+  hipflexor: { id:"hipflexor", category:"stretch", name:"半跪姿髋屈肌拉伸(左侧)", duration:"90 秒 × 2 组", position:"右膝跪地,左脚在前踩地呈 90 度", instruction:"主动收缩右臀(会感觉右侧髋前侧被拉开),身体向左侧小幅度侧屈增强拉伸。", keyPoint:"这是整个计划松解环节最重要的动作,决定骨盆前旋能否改善。右臀主动收缩是关键 —— 不是被动压,是主动拉开。" },
+
+  // 第 1 阶段训练
+  deadbug: { id:"deadbug", category:"training", name:"死虫", duration:"12 次 × 3 组", position:"仰卧,双手向上指向天花板,双膝屈 90 度抬起", instruction:"慢速交替伸展对侧手脚,伸展时保持骨盆贴地。", qualityCheck:"慢速;骨盆全程贴地,腰不离地。" },
+  clamshell: { id:"clamshell", category:"training", name:"蚌式(左 2 倍量)", duration:"左 15 + 右 8 × 3 组", position:"侧卧,双膝屈曲 45 度,脚跟并拢", instruction:"上方膝盖向上打开,脚跟始终贴合,骨盆不后倒。", qualityCheck:"感受臀外侧发力,骨盆不后倒。" },
+  gluteProne: { id:"gluteProne", category:"training", name:"俯卧单腿臀大肌激活", duration:"左 12 + 右 8 × 3 组", position:"俯卧,一侧腿屈膝 90 度", instruction:"屈膝 90 度蹬天花板,找坐骨下方发力。", qualityCheck:"找到坐骨下方(臀大肌下束)发力,不是腰或大腿后侧。" },
+  pelvicTilt: { id:"pelvicTilt", category:"training", name:"仰卧勾腹骨盆后倾", duration:"15 次 × 3 组", position:"仰卧屈膝,双脚踩地", instruction:"下腹把骨盆卷起,腰压地。", qualityCheck:"下腹发力,不是屁股或大腿。" },
+  sideBridgeKnee: { id:"sideBridgeKnee", category:"training", name:"左侧侧桥(膝盖版)", duration:"20-30 秒 × 3 组", position:"左侧卧,左肘和左膝支撑", instruction:"把骨盆抬起成一条直线,保持静止。", qualityCheck:"骨盆不掉,肋骨不翻。" },
+
+  // 第 2 阶段训练
+  birdDog: { id:"birdDog", category:"training", name:"鸟狗", duration:"左 8 + 右 5 × 3 组", position:"四点支撑跪姿", instruction:"对侧手脚同时伸展,慢速。", qualityCheck:"对侧手脚伸展时骨盆不旋转。" },
+  singleLegBridge: { id:"singleLegBridge", category:"training", name:"单腿臀桥(左支撑)", duration:"左 12 + 右 8 × 3 组", position:"仰卧屈膝,一脚踩地,另一腿悬空", instruction:"支撑腿发力把骨盆顶起。", qualityCheck:"找臀下束发力,不是腰代偿。" },
+  sideBridgeFull: { id:"sideBridgeFull", category:"training", name:"侧桥(标准版)", duration:"30-45 秒 × 3 组每侧", position:"侧卧,肘和脚支撑", instruction:"骨盆抬起成一条直线。", qualityCheck:"左侧通常需要额外练习达到对称。" },
+  pallofPress: { id:"pallofPress", category:"training", name:"半跪姿 Pallof Press", duration:"左右各 10 次 × 3 组", position:"半跪姿,弹力带固定在侧方", instruction:"双手持弹力带向前推,核心主动对抗旋转力。", qualityCheck:"弹力带抗旋转,核心主动对抗。" },
+  wallSingleLeg: { id:"wallSingleLeg", category:"training", name:"靠墙单腿站(左腿)", duration:"90 秒 × 3 组", position:"左腿单腿站立,右腿屈膝,背靠墙", qualityCheck:"足弓三点支撑 + 臀深层共同工作。" },
+  splitSquat: { id:"splitSquat", category:"training", name:"徒手分腿蹲(左腿在前)", duration:"10 次 × 3 组", position:"分腿站立,左腿在前", instruction:"下蹲至后膝接近地面,保持躯干直立。", qualityCheck:"不负重,先找感觉。" },
+
+  // 第 3 阶段训练
+  rdl: { id:"rdl", category:"training", name:"罗马尼亚硬拉(单腿)", duration:"左 10 + 右 8 × 3 组", position:"单腿站立,对侧手持哑铃", instruction:"髋关节铰链,轻重量开始。", qualityCheck:"用臀把骨盆卷回来。" },
+  lateralLunge: { id:"lateralLunge", category:"training", name:"壶铃/哑铃侧向弓步", duration:"左右各 8 次 × 3 组", qualityCheck:"左侧对称发力。" },
+  farmerWalk: { id:"farmerWalk", category:"training", name:"单侧农夫行走(左手持重)", duration:"30 米 × 3 组", qualityCheck:"核心抗侧屈。" },
+  boxPistol: { id:"boxPistol", category:"training", name:"箱式单腿深蹲(左腿)", duration:"8 次 × 3 组", qualityCheck:"膝不内扣,力从脚传到臀。" },
+  kbSwing: { id:"kbSwing", category:"training", name:"壶铃摇摆", duration:"15 次 × 3 组", qualityCheck:"强化后链协调。" },
+  sideBridgeArm: { id:"sideBridgeArm", category:"training", name:"侧桥带上方手臂划圈", duration:"10 次 × 3 组每侧", qualityCheck:"动态抗扭。" }
+};
+
+const DAILY_PLAN = {
+  1: { name:"第一阶段 · 松解与唤醒", weeks:"第 1-4 周", goal:"浅层代偿肌肉下班,深层沉睡肌肉上班。追求感受质量,不追求次数和强度。",
+    morning:["sacroiliac","breathing90"], release:["adductor","iliopsoas","tfl","ql","glutemed","hamstring"], training:["deadbug","clamshell","gluteProne","pelvicTilt","sideBridgeKnee"], stretch:["hipflexor"] },
+  2: { name:"第二阶段 · 对称与整合", weeks:"第 5-8 周", goal:"深层开始能发力后,建立左右对称的动作模式。",
+    morning:["sacroiliac","breathing90"], release:["adductor","iliopsoas","tfl","ql","glutemed","hamstring"], training:["birdDog","singleLegBridge","sideBridgeFull","pallofPress","wallSingleLeg","splitSquat"], stretch:["hipflexor"] },
+  3: { name:"第三阶段 · 力量与力线", weeks:"第 9-12 周", goal:"新稳定系统整合到真实负重和复合动作。",
+    morning:["sacroiliac","breathing90"], release:["adductor","iliopsoas","tfl","ql","glutemed","hamstring"], training:["rdl","lateralLunge","farmerWalk","boxPistol","kbSwing","sideBridgeArm"], stretch:["hipflexor"] },
+  maintain: { name:"维持期", weeks:"第 12 周以后", goal:"新模式自动化,日常觉察为主。",
+    morning:["breathing90"], release:["adductor","iliopsoas","hipflexor"], training:[], stretch:["hipflexor"] }
+};
+
+const CATEGORY_LABEL = {
+  morning: { label:"晨间流程", time:"10 MIN", num:"Ⅰ" },
+  release: { label:"睡前松解", time:"15-20 MIN", num:"Ⅱ" },
+  training: { label:"激活训练", time:"15-20 MIN", num:"Ⅲ" },
+  stretch: { label:"睡前拉伸", time:"5 MIN", num:"Ⅳ" }
+};
+
+/* ============================================================
+   数据层
+============================================================ */
+const STORAGE_KEY = 'align_data_v1';
+const DEFAULT_STATE = {
+  startDate: new Date().toISOString().slice(0,10),
+  currentPhase: 1,
+  checkins: {}   // { "YYYY-MM-DD": { doneIds: {}, mood: {} } }
+};
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return {...DEFAULT_STATE};
+    const parsed = JSON.parse(raw);
+    return {...DEFAULT_STATE, ...parsed};
+  } catch (e) {
+    return {...DEFAULT_STATE};
+  }
+}
+
+function saveState() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+let state = loadState();
+
+function todayKey() {
+  return new Date().toISOString().slice(0,10);
+}
+
+function getCheckin(dateKey) {
+  if (!state.checkins[dateKey]) {
+    state.checkins[dateKey] = { doneIds:{}, mood:{ cShape:null, leftHipFwd:null, leftKnee:null, note:"" } };
+  }
+  return state.checkins[dateKey];
+}
+
+function isDone(exId, dateKey=todayKey()) {
+  const rec = state.checkins[dateKey]?.doneIds?.[exId];
+  if (!rec) return false;
+  // 兼容老格式 {done: true}
+  if (rec.done === true && rec.totalSets === undefined) return true;
+  // 新格式:必须 sets >= totalSets
+  if (rec.totalSets !== undefined) return rec.sets >= rec.totalSets;
+  return false;
+}
+
+function getQuality(exId, dateKey=todayKey()) {
+  const rec = state.checkins[dateKey]?.doneIds?.[exId];
+  return rec && typeof rec === 'object' ? rec.quality : null;
+}
+
+// 获取已完成组数
+function getSetsDone(exId, dateKey=todayKey()) {
+  const rec = state.checkins[dateKey]?.doneIds?.[exId];
+  if (!rec) return 0;
+  if (rec.sets !== undefined) return rec.sets;
+  // 老格式:已完成视为全部完成
+  if (rec.done === true) {
+    const ex = getExercise(exId);
+    return getTotalSets(ex);
+  }
+  return 0;
+}
+
+// 获取动作的总组数(从 duration 解析或编辑值)
+function getTotalSets(ex) {
+  if (!ex) return 0;
+  // 优先用编辑值
+  if (ex.totalSets !== undefined && ex.totalSets !== null) return ex.totalSets;
+  // 从 duration 解析 "X 次 × Y 组" 或 "Y 组"
+  const dur = ex.duration || '';
+  const m = dur.match(/×\s*(\d+)\s*组/);
+  if (m) return parseInt(m[1]);
+  const m2 = dur.match(/(\d+)\s*组/);
+  if (m2) return parseInt(m2[1]);
+  return 1;
+}
+
+// 获取每组次数(展示用,可解析或编辑)
+function getRepsPerSet(ex) {
+  if (!ex) return null;
+  if (ex.repsPerSet !== undefined && ex.repsPerSet !== null) return ex.repsPerSet;
+  const dur = ex.duration || '';
+  // "12 次 × 3 组"
+  const m = dur.match(/(\d+)\s*次\s*×/);
+  if (m) return { type: 'reps', value: parseInt(m[1]), display: m[1] + ' 次' };
+  // "左 15 + 右 8 × 3 组"
+  const m2 = dur.match(/左\s*(\d+)\s*\+\s*右\s*(\d+)\s*×/);
+  if (m2) return { type: 'asymmetric', left: parseInt(m2[1]), right: parseInt(m2[2]), display: `左 ${m2[1]} + 右 ${m2[2]}` };
+  // "左右各 10 次 × 3 组"
+  const m3 = dur.match(/左右各\s*(\d+)\s*次\s*×/);
+  if (m3) return { type: 'each', value: parseInt(m3[1]), display: `左右各 ${m3[1]} 次` };
+  // "30-45 秒 × 3 组" 或 "20-30 秒 × 3 组"
+  const m4 = dur.match(/(\d+(?:-\d+)?)\s*秒\s*×/);
+  if (m4) return { type: 'time', display: m4[1] + ' 秒' };
+  // "90 秒 × 2 组"
+  const m5 = dur.match(/(\d+)\s*秒\s*×\s*\d+\s*组/);
+  if (m5) return { type: 'time', display: m5[1] + ' 秒' };
+  return null;
+}
+
+// 是否是分组类动作(训练 + 拉伸里多组的)
+function isMultiSetExercise(ex) {
+  if (!ex) return false;
+  if (ex.category !== 'training' && ex.category !== 'stretch') return false;
+  return getTotalSets(ex) > 1;
+}
+
+function setDone(exId, val, quality=null) {
+  const checkin = getCheckin(todayKey());
+  if (val) {
+    const ex = getExercise(exId);
+    const total = getTotalSets(ex);
+    if (quality !== null) {
+      checkin.doneIds[exId] = { done:true, sets: total, totalSets: total, quality, ts:Date.now() };
+    } else {
+      checkin.doneIds[exId] = { done:true, sets: total, totalSets: total, ts:Date.now() };
+    }
+  } else {
+    delete checkin.doneIds[exId];
+  }
+  saveState();
+}
+
+// 增加一组,返回是否完成所有组
+function incrementSet(exId) {
+  const ex = getExercise(exId);
+  const total = getTotalSets(ex);
+  const checkin = getCheckin(todayKey());
+  const current = checkin.doneIds[exId];
+  let sets = current?.sets || 0;
+  sets += 1;
+  if (sets > total) sets = total;
+  checkin.doneIds[exId] = {
+    ...current,
+    sets,
+    totalSets: total,
+    ts: Date.now()
+  };
+  if (sets >= total) {
+    checkin.doneIds[exId].done = true;
+  }
+  saveState();
+  return sets >= total;
+}
+
+// 重置某动作的当日进度
+function resetSets(exId) {
+  const checkin = getCheckin(todayKey());
+  delete checkin.doneIds[exId];
+  saveState();
+}
+
+// 单独设置质量分(完成最后一组后填)
+function setQuality(exId, quality) {
+  const checkin = getCheckin(todayKey());
+  if (checkin.doneIds[exId]) {
+    checkin.doneIds[exId].quality = quality;
+    saveState();
+  }
+}
+
+function daysSinceStart() {
+  const start = new Date(state.startDate);
+  const now = new Date();
+  start.setHours(0,0,0,0); now.setHours(0,0,0,0);
+  return Math.max(0, Math.floor((now - start) / 86400000));
+}
+
+function weekNum() {
+  return Math.floor(daysSinceStart() / 7) + 1;
+}
+
+function streakDays() {
+  let count = 0;
+  const d = new Date();
+  d.setHours(0,0,0,0);
+  while (true) {
+    const key = d.toISOString().slice(0,10);
+    const rec = state.checkins[key];
+    if (rec && Object.keys(rec.doneIds || {}).length > 0) {
+      count++;
+      d.setDate(d.getDate() - 1);
+    } else {
+      if (key === todayKey()) {
+        // 今天还没打卡不算中断,跳过看昨天
+        d.setDate(d.getDate() - 1);
+        continue;
+      }
+      break;
+    }
+  }
+  return count;
+}
+
+/* ============================================================
+   渲染 - 今日页
+============================================================ */
+function renderToday() {
+  const phase = DAILY_PLAN[state.currentPhase];
+  const page = document.getElementById('page-today');
+
+  const totalCount = phase.morning.length + phase.release.length + phase.training.length + phase.stretch.length;
+  const doneCount = [...phase.morning, ...phase.release, ...phase.training, ...phase.stretch].filter(id => isDone(id)).length;
+
+  let html = '';
+
+  // 进度提示
+  html += `<div class="divider-deco">${doneCount} / ${totalCount}</div>`;
+
+  // 四大分组
+  ['morning', 'release', 'training', 'stretch'].forEach(cat => {
+    const ids = phase[cat];
+    if (!ids || ids.length === 0) return;
+    const meta = CATEGORY_LABEL[cat];
+    html += `<div class="section">
+      <div class="section-label">
+        <span class="section-label-num">${meta.num}</span>
+        <span class="section-label-text">${meta.label}</span>
+        <span class="section-label-time">${meta.time}</span>
+      </div>
+      <div class="exercise-list">
+        ${ids.map(id => renderExerciseItem(id)).join('')}
+      </div>
+    </div>`;
+  });
+
+  // 感受日记入口
+  html += `<div class="section">
+    <div class="section-label">
+      <span class="section-label-num">Ⅴ</span>
+      <span class="section-label-text">今日感受</span>
+    </div>
+    ${renderMoodCard()}
+  </div>`;
+
+  page.innerHTML = html;
+}
+
+function renderExerciseItem(exId) {
+  const ex = getExercise(exId);
+  if (!ex) return '';
+  const done = isDone(exId);
+  const quality = getQuality(exId);
+  const showQuality = ex.category === 'training' && quality;
+  const isMultiSet = isMultiSetExercise(ex);
+  const totalSets = getTotalSets(ex);
+  const setsDone = getSetsDone(exId);
+  const reps = getRepsPerSet(ex);
+
+  // 进度按钮 - 单组动作用普通 checkbox,多组用进度按钮
+  let progressBtn;
+  if (isMultiSet) {
+    let cls = 'set-progress';
+    if (done) cls += ' complete';
+    else if (setsDone > 0) cls += ' partial resettable';
+    const fillPct = totalSets > 0 ? (setsDone / totalSets) * 100 : 0;
+    progressBtn = `<button class="${cls}" onclick="onSetClick('${exId}', event)" oncontextmenu="onSetReset('${exId}', event)">
+      <div class="set-progress-fill" style="height: ${fillPct}%;"></div>
+      <div class="set-progress-text">${setsDone}/${totalSets}</div>
+      <div class="set-progress-label">${done ? '完成' : '组'}</div>
+    </button>`;
+  } else {
+    progressBtn = `<button class="checkbox" onclick="toggleExercise('${exId}', event)">
+      <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+    </button>`;
+  }
+
+  return `<div class="exercise-item ${done ? 'done' : ''}">
+    ${progressBtn}
+    <div class="exercise-body" onclick="openDetail('${exId}')">
+      <div class="exercise-name">${ex.name}</div>
+      <div class="exercise-meta">
+        <span>${ex.duration}</span>
+        ${isMultiSet && reps ? `<span class="reps-display">· ${reps.display}/组</span>` : ''}
+        ${showQuality ? `<span class="quality-dots">
+          ${[1,2,3].map(n => `<span class="quality-dot ${n <= quality ? 'filled' : ''}"></span>`).join('')}
+        </span>` : ''}
+      </div>
+    </div>
+    <div class="exercise-arrow">›</div>
+  </div>`;
+}
+
+function renderMoodCard() {
+  const checkin = getCheckin(todayKey());
+  const mood = checkin.mood;
+  return `<div class="mood-card">
+    ${renderMoodSlider('cShape', '晨起 C 型程度', mood.cShape)}
+    ${renderMoodSlider('leftHipFwd', '左髋前送感', mood.leftHipFwd)}
+    ${renderMoodSlider('leftKnee', '左膝疼痛', mood.leftKnee)}
+    <textarea class="mood-note" rows="3" placeholder="今日新发现 / 问题 / 特殊感受..." oninput="updateMoodNote(this.value)">${mood.note || ''}</textarea>
+  </div>`;
+}
+
+function renderMoodSlider(key, label, value) {
+  const displayVal = value === null || value === undefined ? '—' : value;
+  return `<div class="mood-row">
+    <div class="mood-label">
+      <span class="mood-label-text">${label}</span>
+      <span class="mood-label-val" id="mood-${key}-val">${displayVal}</span>
+    </div>
+    <input type="range" class="mood-slider" min="0" max="10" value="${value ?? 5}" oninput="updateMood('${key}', this.value)">
+  </div>`;
+}
+
+function toggleExercise(exId, event) {
+  event.stopPropagation();
+  const ex = getExercise(exId);
+  const currentlyDone = isDone(exId);
+
+  if (currentlyDone) {
+    setDone(exId, false);
+    renderToday();
+    return;
+  }
+
+  // 单组训练动作直接弹质量分;非训练直接打勾
+  if (ex.category === 'training') {
+    openQualityModal(exId);
+  } else {
+    setDone(exId, true);
+    renderToday();
+    checkAllDone();
+  }
+}
+
+// 多组动作:点击 +1 组,完成最后一组弹质量分(训练类)
+function onSetClick(exId, event) {
+  event.stopPropagation();
+  const ex = getExercise(exId);
+  const wasComplete = isDone(exId);
+
+  // 已完成 -> 提示是否重置(单击不重置,需用长按或右键)
+  if (wasComplete) {
+    if (confirm('已完成所有组,要重置进度吗?')) {
+      resetSets(exId);
+      renderToday();
+    }
+    return;
+  }
+
+  const justCompleted = incrementSet(exId);
+  renderToday();
+
+  // 触觉反馈
+  if (navigator.vibrate) navigator.vibrate(15);
+
+  // 完成最后一组
+  if (justCompleted) {
+    if (ex.category === 'training') {
+      // 训练类弹质量分
+      setTimeout(() => openQualityModal(exId), 200);
+    } else {
+      // 非训练类(如拉伸的多组)直接庆祝
+      checkAllDone();
+    }
+  }
+}
+
+// 长按/右键重置
+function onSetReset(exId, event) {
+  event.preventDefault();
+  event.stopPropagation();
+  const setsDone = getSetsDone(exId);
+  if (setsDone === 0) return;
+  if (confirm(`重置当前进度?(${setsDone} 组将被清空)`)) {
+    resetSets(exId);
+    renderToday();
+  }
+}
+
+function updateMood(key, value) {
+  const checkin = getCheckin(todayKey());
+  checkin.mood[key] = parseInt(value);
+  document.getElementById(`mood-${key}-val`).textContent = value;
+  saveState();
+}
+
+function updateMoodNote(val) {
+  const checkin = getCheckin(todayKey());
+  checkin.mood.note = val;
+  saveState();
+}
+
+function checkAllDone() {
+  const phase = DAILY_PLAN[state.currentPhase];
+  const all = [...phase.morning, ...phase.release, ...phase.training, ...phase.stretch];
+  const allDone = all.every(id => isDone(id));
+  if (allDone && all.length > 0) {
+    const streak = streakDays();
+    document.getElementById('celebrateSub').textContent =
+      `连续第 ${streak} 天 · 第 ${weekNum()} 周 Day ${((daysSinceStart()) % 7) + 1}`;
+    const overlay = document.getElementById('celebrateOverlay');
+    overlay.classList.add('show');
+    setTimeout(() => overlay.classList.remove('show'), 2400);
+  }
+}
+
+/* ============================================================
+   质量分弹窗
+============================================================ */
+let pendingExId = null;
+
+function openQualityModal(exId) {
+  pendingExId = exId;
+  document.getElementById('qualityModalSub').textContent = getExercise(exId).qualityCheck || '这次训练的感受质量';
+  document.querySelectorAll('.quality-option').forEach(el => el.classList.remove('selected'));
+  document.getElementById('qualityModal').classList.add('open');
+}
+
+// 点击质量分 -> 立即提交并完成
+function submitQuality(q) {
+  if (!pendingExId) return;
+  const exId = pendingExId;
+  const ex = getExercise(exId);
+  const isMultiSet = isMultiSetExercise(ex);
+
+  // 视觉反馈:先选中
+  document.querySelectorAll('.quality-option').forEach(el => {
+    el.classList.toggle('selected', parseInt(el.dataset.q) === q);
+  });
+
+  if (isMultiSet) {
+    // 分组动作:此时所有组已经打满,只需补质量分
+    setQuality(exId, q);
+  } else {
+    // 单次动作:打勾 + 设置质量分
+    setDone(exId, true, q);
+  }
+
+  if (navigator.vibrate) navigator.vibrate(20);
+
+  // 短暂延迟显示选中态后关闭
+  setTimeout(() => {
+    document.getElementById('qualityModal').classList.remove('open');
+    pendingExId = null;
+    renderToday();
+    checkAllDone();
+  }, 250);
+}
+
+// 滑下取消(点击背景或下滑)
+document.getElementById('qualityModal').addEventListener('click', (e) => {
+  if (e.target.id === 'qualityModal') {
+    e.currentTarget.classList.remove('open');
+    // 注意:此时分组动作的所有组已经打满,但没填质量分 - 这是允许的状态
+    pendingExId = null;
+  }
+});
+
+/* ============================================================
+   动作数据访问层 - 合并用户编辑
+============================================================ */
+const EDITS_KEY = 'align_edits_v1';
+
+function loadEdits() {
+  try {
+    return JSON.parse(localStorage.getItem(EDITS_KEY) || '{}');
+  } catch (e) { return {}; }
+}
+
+function saveEdits(edits) {
+  localStorage.setItem(EDITS_KEY, JSON.stringify(edits));
+}
+
+let userEdits = loadEdits();
+
+// 获取动作数据(合并用户编辑)
+function getExercise(exId) {
+  const base = EXERCISES[exId];
+  if (!base) return null;
+  const edit = userEdits[exId];
+  if (!edit) return { ...base, _edited: false };
+  // 深合并:如果用户编辑了某字段就用编辑值
+  const merged = { ...base };
+  ['name', 'duration', 'tool', 'position', 'instruction', 'feeling', 'keyPoint', 'warning', 'qualityCheck', 'repsPerSet', 'totalSets'].forEach(k => {
+    if (edit[k] !== undefined) merged[k] = edit[k];
+  });
+  if (edit.segments !== undefined) merged.segments = edit.segments;
+  if (edit.timerConfig !== undefined) merged.timerConfig = edit.timerConfig;
+  merged._edited = true;
+  return merged;
+}
+
+function updateExerciseField(exId, field, value) {
+  if (!userEdits[exId]) userEdits[exId] = {};
+  userEdits[exId][field] = value;
+  saveEdits(userEdits);
+}
+
+function updateExerciseSegments(exId, segments) {
+  if (!userEdits[exId]) userEdits[exId] = {};
+  userEdits[exId].segments = segments;
+  saveEdits(userEdits);
+}
+
+function updateTimerConfig(exId, config) {
+  if (!userEdits[exId]) userEdits[exId] = {};
+  userEdits[exId].timerConfig = config;
+  saveEdits(userEdits);
+}
+
+function resetExerciseEdits(exId) {
+  delete userEdits[exId];
+  saveEdits(userEdits);
+}
+
+// 解析 duration 字符串得到默认计时秒数
+function parseDurationSeconds(durationStr) {
+  if (!durationStr) return 120;
+  // "3-5 分钟" -> 取 4 分钟; "90 秒 × 2 组" -> 90 秒; "12 次 × 3 组" -> null(次数类不计时)
+  const minRange = durationStr.match(/(\d+)\s*[-~]\s*(\d+)\s*分/);
+  if (minRange) return Math.round((parseInt(minRange[1]) + parseInt(minRange[2])) / 2) * 60;
+  const min = durationStr.match(/(\d+)\s*分/);
+  if (min) return parseInt(min[1]) * 60;
+  const sec = durationStr.match(/(\d+)\s*秒/);
+  if (sec) return parseInt(sec[1]);
+  // 次数类无默认时长
+  if (/次|组/.test(durationStr) && !/分|秒/.test(durationStr)) return null;
+  return 120;
+}
+
+/* ============================================================
+   详情页
+============================================================ */
+let currentDetailId = null;
+let editMode = false;
+
+function openDetail(exId) {
+  currentDetailId = exId;
+  editMode = false;
+  document.getElementById('editToggle').classList.remove('active');
+  renderDetail();
+  document.getElementById('detailOverlay').classList.add('open');
+}
+
+function toggleEditMode() {
+  if (timerState.running) {
+    if (!confirm('计时器正在运行,确定退出?')) return;
+    stopTimer();
+  }
+  editMode = !editMode;
+  document.getElementById('editToggle').classList.toggle('active', editMode);
+  renderDetail();
+}
+
+function renderDetail() {
+  const ex = getExercise(currentDetailId);
+  if (!ex) return;
+
+  document.getElementById('detailCat').textContent = `${CATEGORY_LABEL[ex.category].label} · ${ex.duration}`;
+  const titleEl = document.getElementById('detailTitle');
+  titleEl.textContent = ex.name;
+  if (ex._edited) {
+    const badge = document.createElement('span');
+    badge.className = 'edit-saved-badge';
+    badge.textContent = '已编辑';
+    titleEl.appendChild(badge);
+  }
+
+  const body = editMode ? renderDetailEdit(ex) : renderDetailView(ex);
+  document.getElementById('detailBody').innerHTML = body;
+
+  // 视图模式下绑定计时器(松解和拉伸都需要,训练动作的次数类不需要)
+  if (!editMode && (ex.category === 'release' || ex.category === 'stretch' || ex.category === 'morning')) {
+    if (parseDurationSeconds(ex.duration) !== null) {
+      mountTimer(ex);
+    }
+  }
+
+  const done = isDone(currentDetailId);
+  const btn = document.getElementById('detailActionBtn');
+  if (editMode) {
+    btn.textContent = '完成编辑';
+    btn.classList.remove('done');
+  } else {
+    btn.textContent = done ? '✓ 已完成 · 取消' : '标记完成';
+    btn.classList.toggle('done', done);
+  }
+}
+
+// ============ 视图模式渲染 ============
+function renderDetailView(ex) {
+  let body = '';
+
+  if (ex.qualityCheck && ex.category === 'training') {
+    body += `<div class="detail-hero">${escapeHtml(ex.qualityCheck)}</div>`;
+  } else if (ex.keyPoint) {
+    body += `<div class="detail-hero">${escapeHtml(ex.keyPoint)}</div>`;
+  }
+
+  if (ex.tool) {
+    body += `<div class="detail-block">
+      <div class="block-label">工具</div>
+      <div class="block-content">${escapeHtml(ex.tool)}</div>
+    </div>`;
+  }
+
+  if (ex.position) {
+    body += `<div class="detail-block">
+      <div class="block-label">体位</div>
+      <div class="block-content">${escapeHtml(ex.position)}</div>
+    </div>`;
+  }
+
+  if (ex.instruction) {
+    body += `<div class="detail-block">
+      <div class="block-label">动作要领</div>
+      <div class="block-content">${escapeHtml(ex.instruction)}</div>
+    </div>`;
+  }
+
+  if (ex.segments && ex.segments.length > 0) {
+    body += `<div class="detail-block">
+      <div class="block-label">${ex.category === 'release' ? '松解路径' : '动作节点'}</div>
+      ${ex.segments.map(s => `<div class="segment-card">
+        <div class="segment-name">${escapeHtml(s.name)}</div>
+        ${s.location ? `<div class="segment-loc">${escapeHtml(s.location)}</div>` : ''}
+        ${s.feeling ? `<div class="segment-feel">${escapeHtml(s.feeling)}</div>` : ''}
+      </div>`).join('')}
+    </div>`;
+  }
+
+  if (ex.feeling) {
+    body += `<div class="detail-block">
+      <div class="block-label">应感受到</div>
+      <div class="block-content">${escapeHtml(ex.feeling)}</div>
+    </div>`;
+  }
+
+  if (ex.keyPoint && ex.category !== 'training') {
+    body += `<div class="callout key">
+      <div class="callout-label">关键信号</div>
+      ${escapeHtml(ex.keyPoint)}
+    </div>`;
+  }
+
+  if (ex.warning) {
+    body += `<div class="callout warn">
+      <div class="callout-label">⚠ 警示</div>
+      ${escapeHtml(ex.warning)}
+    </div>`;
+  }
+
+  // 计时器挂载点
+  if ((ex.category === 'release' || ex.category === 'stretch' || ex.category === 'morning') && parseDurationSeconds(ex.duration) !== null) {
+    body += `<div class="timer-section" id="timerSection"></div>`;
+  }
+
+  return body;
+}
+
+// ============ 编辑模式渲染 ============
+function renderDetailEdit(ex) {
+  let body = '';
+
+  body += `<div class="detail-hero" style="background: var(--warn-soft); border-left-color: var(--warn); color: #7d5c10; font-style: normal;">
+    <strong>编辑模式</strong> · 修改会保存到本地,所有日历日的此动作都会同步更新。
+  </div>`;
+
+  // 名称
+  body += `<div class="detail-block">
+    <div class="block-label">名称</div>
+    <input class="edit-input small" value="${escapeAttr(ex.name)}" oninput="onEditName('${ex.id}', this.value)">
+  </div>`;
+
+  // 时长
+  body += `<div class="detail-block">
+    <div class="block-label">时长</div>
+    <input class="edit-input small" value="${escapeAttr(ex.duration)}" oninput="updateExerciseField('${ex.id}', 'duration', this.value)" placeholder="例:3-5 分钟、90 秒 × 2 组">
+    <div style="font-size: 11px; color: var(--ink-faint); margin-top: 4px;">影响计时器默认时长(自动解析)</div>
+  </div>`;
+
+  // 分组配置(训练 / 拉伸)
+  if (ex.category === 'training' || ex.category === 'stretch') {
+    const totalSets = getTotalSets(ex);
+    const repsInfo = getRepsPerSet(ex);
+    const repsValue = (ex.repsPerSet !== undefined && ex.repsPerSet !== null)
+      ? ex.repsPerSet
+      : (repsInfo ? repsInfo.display : '');
+    body += `<div class="detail-block">
+      <div class="block-label">分组打卡设置</div>
+      <div style="display: flex; gap: 12px; align-items: stretch;">
+        <div style="flex:1;">
+          <div style="font-size: 11px; color: var(--ink-faint); margin-bottom: 4px;">每组目标</div>
+          <input class="edit-input small" value="${escapeAttr(repsValue)}" oninput="updateExerciseField('${ex.id}', 'repsPerSet', this.value)" placeholder="例:12 次 / 30 秒">
+        </div>
+        <div style="width: 100px;">
+          <div style="font-size: 11px; color: var(--ink-faint); margin-bottom: 4px;">组数</div>
+          <input class="edit-input small" type="number" min="1" max="20" value="${totalSets}" oninput="onEditTotalSets('${ex.id}', this.value)">
+        </div>
+      </div>
+      <div style="font-size: 11px; color: var(--ink-faint); margin-top: 6px;">今日页会显示 0/${totalSets} 进度按钮,每点一次完成一组</div>
+    </div>`;
+  }
+
+  // 工具
+  if (ex.tool !== undefined || true) {
+    body += `<div class="detail-block">
+      <div class="block-label">工具</div>
+      <textarea class="edit-input" rows="2" oninput="updateExerciseField('${ex.id}', 'tool', this.value)" placeholder="所需工具,可留空">${escapeHtml(ex.tool || '')}</textarea>
+    </div>`;
+  }
+
+  // 体位
+  body += `<div class="detail-block">
+    <div class="block-label">体位</div>
+    <textarea class="edit-input" rows="2" oninput="updateExerciseField('${ex.id}', 'position', this.value)" placeholder="起始体位">${escapeHtml(ex.position || '')}</textarea>
+  </div>`;
+
+  // 动作要领
+  body += `<div class="detail-block">
+    <div class="block-label">动作要领</div>
+    <textarea class="edit-input" rows="3" oninput="updateExerciseField('${ex.id}', 'instruction', this.value)" placeholder="详细操作步骤">${escapeHtml(ex.instruction || '')}</textarea>
+  </div>`;
+
+  // 节点(段)
+  body += `<div class="detail-block">
+    <div class="block-label">节点 / 路径</div>
+    <div id="segmentsEditList">
+      ${(ex.segments || []).map((s, i) => renderSegmentEdit(ex.id, s, i)).join('')}
+    </div>
+    <button class="btn-add-segment" onclick="addSegment('${ex.id}')">+ 添加节点</button>
+  </div>`;
+
+  // 感受
+  body += `<div class="detail-block">
+    <div class="block-label">应感受到</div>
+    <textarea class="edit-input" rows="2" oninput="updateExerciseField('${ex.id}', 'feeling', this.value)" placeholder="目标感受">${escapeHtml(ex.feeling || '')}</textarea>
+  </div>`;
+
+  // 关键信号
+  body += `<div class="detail-block">
+    <div class="block-label">关键信号 / 重点</div>
+    <textarea class="edit-input" rows="2" oninput="updateExerciseField('${ex.id}', 'keyPoint', this.value)">${escapeHtml(ex.keyPoint || '')}</textarea>
+  </div>`;
+
+  // 警示
+  body += `<div class="detail-block">
+    <div class="block-label">警示</div>
+    <textarea class="edit-input" rows="2" oninput="updateExerciseField('${ex.id}', 'warning', this.value)">${escapeHtml(ex.warning || '')}</textarea>
+  </div>`;
+
+  // 训练类的质量检查项
+  if (ex.category === 'training') {
+    body += `<div class="detail-block">
+      <div class="block-label">质量自检提示</div>
+      <textarea class="edit-input" rows="2" oninput="updateExerciseField('${ex.id}', 'qualityCheck', this.value)">${escapeHtml(ex.qualityCheck || '')}</textarea>
+    </div>`;
+  }
+
+  // 重置按钮
+  if (userEdits[ex.id]) {
+    body += `<button class="btn-ghost danger" style="margin-top: 16px;" onclick="resetExercise('${ex.id}')">恢复默认值(放弃所有编辑)</button>`;
+  }
+
+  return body;
+}
+
+function renderSegmentEdit(exId, seg, idx) {
+  return `<div class="segment-card" id="seg-${idx}">
+    <input class="edit-input title" value="${escapeAttr(seg.name)}" oninput="updateSegmentField('${exId}', ${idx}, 'name', this.value)" placeholder="节点名称">
+    <textarea class="edit-input small" rows="2" style="margin-top: 8px;" placeholder="位置描述" oninput="updateSegmentField('${exId}', ${idx}, 'location', this.value)">${escapeHtml(seg.location || '')}</textarea>
+    <textarea class="edit-input small" rows="2" style="margin-top: 8px;" placeholder="应感受到" oninput="updateSegmentField('${exId}', ${idx}, 'feeling', this.value)">${escapeHtml(seg.feeling || '')}</textarea>
+    <div class="segment-actions">
+      ${idx > 0 ? `<button class="btn-mini" onclick="moveSegment('${exId}', ${idx}, -1)">↑ 上移</button>` : ''}
+      <button class="btn-mini" onclick="moveSegment('${exId}', ${idx}, 1)">↓ 下移</button>
+      <button class="btn-mini danger" onclick="deleteSegment('${exId}', ${idx})">删除</button>
+    </div>
+  </div>`;
+}
+
+function getEditedSegments(exId) {
+  const ex = getExercise(exId);
+  return [...(ex.segments || [])];
+}
+
+function updateSegmentField(exId, idx, field, value) {
+  const segs = getEditedSegments(exId);
+  if (!segs[idx]) return;
+  segs[idx][field] = value;
+  updateExerciseSegments(exId, segs);
+}
+
+function addSegment(exId) {
+  const segs = getEditedSegments(exId);
+  segs.push({ name: '新节点', location: '', feeling: '' });
+  updateExerciseSegments(exId, segs);
+  renderDetail();
+}
+
+function deleteSegment(exId, idx) {
+  if (!confirm('删除此节点?')) return;
+  const segs = getEditedSegments(exId);
+  segs.splice(idx, 1);
+  updateExerciseSegments(exId, segs);
+  renderDetail();
+}
+
+function moveSegment(exId, idx, dir) {
+  const segs = getEditedSegments(exId);
+  const newIdx = idx + dir;
+  if (newIdx < 0 || newIdx >= segs.length) return;
+  [segs[idx], segs[newIdx]] = [segs[newIdx], segs[idx]];
+  updateExerciseSegments(exId, segs);
+  renderDetail();
+}
+
+function resetExercise(exId) {
+  if (!confirm('恢复默认值会清除你对此动作的所有编辑,确定?')) return;
+  resetExerciseEdits(exId);
+  renderDetail();
+  renderToday();
+}
+
+function escapeHtml(s) {
+  if (s === undefined || s === null) return '';
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function escapeAttr(s) {
+  if (s === undefined || s === null) return '';
+  return String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;');
+}
+
+function onEditName(exId, value) {
+  updateExerciseField(exId, 'name', value);
+  // 安全更新标题:用 textContent + 单独的 badge 节点
+  const titleEl = document.getElementById('detailTitle');
+  titleEl.textContent = value;
+  const badge = document.createElement('span');
+  badge.className = 'edit-saved-badge';
+  badge.textContent = '已编辑';
+  titleEl.appendChild(badge);
+}
+
+function onEditTotalSets(exId, value) {
+  let n = parseInt(value);
+  if (isNaN(n) || n < 1) n = 1;
+  if (n > 20) n = 20;
+  updateExerciseField(exId, 'totalSets', n);
+  // 如果今天已有该动作的进度,clamp 一下
+  const checkin = state.checkins[todayKey()];
+  if (checkin?.doneIds?.[exId]) {
+    const rec = checkin.doneIds[exId];
+    if (rec.sets > n) rec.sets = n;
+    rec.totalSets = n;
+    if (rec.sets >= n) rec.done = true;
+    else delete rec.done;
+    saveState();
+  }
+}
+
+function closeDetail() {
+  if (timerState.running) {
+    if (!confirm('计时器正在运行,确定关闭?')) return;
+    stopTimer();
+  }
+  document.getElementById('detailOverlay').classList.remove('open');
+  releaseWakeLock();
+  currentDetailId = null;
+  editMode = false;
+  document.getElementById('editToggle').classList.remove('active');
+}
+
+function toggleFromDetail() {
+  if (!currentDetailId) return;
+  if (editMode) {
+    // 退出编辑模式
+    editMode = false;
+    document.getElementById('editToggle').classList.remove('active');
+    renderDetail();
+    return;
+  }
+  const ex = getExercise(currentDetailId);
+  const currentlyDone = isDone(currentDetailId);
+  if (currentlyDone) {
+    setDone(currentDetailId, false);
+    closeDetail();
+    renderToday();
+  } else {
+    if (ex.category === 'training') {
+      closeDetail();
+      setTimeout(() => openQualityModal(currentDetailId), 200);
+    } else {
+      setDone(currentDetailId, true);
+      closeDetail();
+      renderToday();
+      checkAllDone();
+    }
+  }
+}
+
+/* ============================================================
+   计时器模块
+============================================================ */
+let timerState = {
+  exId: null,
+  duration: 0,         // 总秒数
+  remaining: 0,        // 剩余秒数
+  running: false,
+  intervalId: null,
+  cues: [],            // [{ atSec: 30, text: "换位置" }]
+  triggeredCues: new Set(),
+  cuePreset: 'none',   // 'none' | 'switch30' | 'switch60' | 'symmetric'
+  midSwitched: false,
+  audioCtx: null,
+};
+
+let wakeLock = null;
+
+function getTimerConfig(exId) {
+  const ex = getExercise(exId);
+  const defaultDur = parseDurationSeconds(ex.duration) || 120;
+  return ex.timerConfig || {
+    duration: defaultDur,
+    cuePreset: 'none',
+    cues: [],
+    keepAwake: true,
+    sound: true
+  };
+}
+
+function mountTimer(ex) {
+  const section = document.getElementById('timerSection');
+  if (!section) return;
+
+  const config = getTimerConfig(ex.id);
+  // 如果当前没在为这个动作计时,重置剩余时间
+  if (timerState.exId !== ex.id || !timerState.running) {
+    timerState.exId = ex.id;
+    timerState.duration = config.duration;
+    timerState.remaining = config.duration;
+    timerState.running = false;
+    timerState.cuePreset = config.cuePreset;
+    timerState.cues = generateCues(ex, config);
+    timerState.triggeredCues = new Set();
+    timerState.midSwitched = false;
+  }
+
+  renderTimer();
+}
+
+function generateCues(ex, config) {
+  const segs = ex.segments || [];
+  const dur = config.duration;
+  const cues = [];
+
+  if (config.cuePreset === 'switch30' && dur >= 60) {
+    for (let t = 30; t < dur; t += 30) cues.push({ atSec: dur - t, text: '换一个痛点' });
+  } else if (config.cuePreset === 'switch60' && dur >= 120) {
+    for (let t = 60; t < dur; t += 60) cues.push({ atSec: dur - t, text: '换一个痛点' });
+  } else if (config.cuePreset === 'symmetric') {
+    cues.push({ atSec: Math.floor(dur / 2), text: '换右侧 / 第二组' });
+  } else if (config.cuePreset === 'segments' && segs.length > 1) {
+    // 平均分配每个节点的时间
+    const perSeg = Math.floor(dur / segs.length);
+    for (let i = 1; i < segs.length; i++) {
+      cues.push({ atSec: dur - perSeg * i, text: `进入「${segs[i].name}」` });
+    }
+  }
+
+  // 加上自定义的 cues
+  if (config.cues && config.cues.length > 0) {
+    config.cues.forEach(c => cues.push(c));
+  }
+
+  return cues;
+}
+
+function renderTimer() {
+  const section = document.getElementById('timerSection');
+  if (!section) return;
+  const config = getTimerConfig(timerState.exId);
+  const ex = getExercise(timerState.exId);
+
+  const mins = Math.floor(timerState.remaining / 60);
+  const secs = timerState.remaining % 60;
+  const timeStr = `${mins}:${String(secs).padStart(2, '0')}`;
+
+  const progress = timerState.duration > 0 ? (timerState.duration - timerState.remaining) / timerState.duration : 0;
+  const circ = 2 * Math.PI * 12;
+  const offset = circ * (1 - progress);
+
+  // 找到下一个即将触发的 cue
+  const nextCue = timerState.cues
+    .filter(c => c.atSec < timerState.remaining)
+    .sort((a, b) => b.atSec - a.atSec)[0];
+
+  let html = `<div class="section-label" style="margin-bottom: 12px;">
+    <span class="section-label-num">⏱</span>
+    <span class="section-label-text">计时器</span>
+    ${wakeLock ? '<span class="wakelock-badge">屏幕常亮</span>' : ''}
+  </div>`;
+
+  html += `<div class="timer-display ${timerState.running ? 'running' : ''}">
+    <svg class="timer-progress-ring" viewBox="0 0 28 28">
+      <circle stroke="${timerState.running ? 'rgba(245,241,232,0.2)' : 'var(--line)'}" stroke-dasharray="${circ}" stroke-dashoffset="0"/>
+      <circle stroke="${timerState.running ? 'var(--bg)' : 'var(--accent)'}" stroke-dasharray="${circ}" stroke-dashoffset="${offset}" stroke-linecap="round"/>
+    </svg>
+    <div class="timer-time">${timeStr}</div>
+    <div class="timer-subtext">${timerState.running ? '进行中' : (timerState.remaining < timerState.duration ? '已暂停' : '准备开始')}</div>
+    ${nextCue ? `<div class="timer-current-cue">${formatTime(timerState.remaining - nextCue.atSec)} 后:${nextCue.text}</div>` : ''}
+  </div>`;
+
+  // 控制按钮
+  html += `<div class="timer-controls">`;
+  if (!timerState.running) {
+    html += `<button class="timer-btn primary" onclick="startTimer()">${timerState.remaining < timerState.duration ? '继续' : '开始'}</button>`;
+    if (timerState.remaining < timerState.duration) {
+      html += `<button class="timer-btn" onclick="resetTimer()">重置</button>`;
+    }
+  } else {
+    html += `<button class="timer-btn" onclick="pauseTimer()">暂停</button>`;
+    html += `<button class="timer-btn danger" onclick="stopTimer()">停止</button>`;
+  }
+  html += `</div>`;
+
+  // 配置区(运行中折叠)
+  if (!timerState.running) {
+    html += `<div class="timer-config">
+      <div class="timer-config-row">
+        <div>
+          <div class="timer-config-label">时长</div>
+          <div class="timer-config-hint">${ex.duration} · 自动解析</div>
+        </div>
+        <div class="duration-stepper">
+          <button class="stepper-btn" onclick="adjustTimerDuration(-30)">−</button>
+          <span class="stepper-val">${formatTime(timerState.duration)}</span>
+          <button class="stepper-btn" onclick="adjustTimerDuration(30)">+</button>
+        </div>
+      </div>
+
+      <div class="timer-config-row" style="flex-direction: column; align-items: stretch; gap: 8px;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <div class="timer-config-label">节点提醒</div>
+            <div class="timer-config-hint">运行中按时间提示换位置</div>
+          </div>
+        </div>
+        <div class="cue-presets">
+          <button class="cue-chip ${config.cuePreset === 'none' ? 'active' : ''}" onclick="setCuePreset('none')">无</button>
+          <button class="cue-chip ${config.cuePreset === 'switch30' ? 'active' : ''}" onclick="setCuePreset('switch30')">每 30 秒</button>
+          <button class="cue-chip ${config.cuePreset === 'switch60' ? 'active' : ''}" onclick="setCuePreset('switch60')">每 60 秒</button>
+          <button class="cue-chip ${config.cuePreset === 'symmetric' ? 'active' : ''}" onclick="setCuePreset('symmetric')">对半切换</button>
+          ${(ex.segments || []).length > 1 ? `<button class="cue-chip ${config.cuePreset === 'segments' ? 'active' : ''}" onclick="setCuePreset('segments')">按节点</button>` : ''}
+        </div>
+        ${timerState.cues.length > 0 ? `<div class="cue-list">
+          ${timerState.cues.sort((a,b) => b.atSec - a.atSec).map(c => `<div class="cue-item">
+            <span class="cue-item-time">${formatTime(timerState.duration - c.atSec)}</span>
+            <span class="cue-item-text">${escapeHtml(c.text)}</span>
+          </div>`).join('')}
+        </div>` : ''}
+      </div>
+
+      <div class="timer-config-row">
+        <div>
+          <div class="timer-config-label">屏幕常亮</div>
+          <div class="timer-config-hint">运行时屏幕不会自动锁定</div>
+        </div>
+        <input type="checkbox" ${config.keepAwake ? 'checked' : ''} onchange="toggleTimerOption('keepAwake', this.checked)">
+      </div>
+
+      <div class="timer-config-row">
+        <div>
+          <div class="timer-config-label">声音提示</div>
+          <div class="timer-config-hint">节点和结束时响铃</div>
+        </div>
+        <input type="checkbox" ${config.sound ? 'checked' : ''} onchange="toggleTimerOption('sound', this.checked)">
+      </div>
+    </div>`;
+  }
+
+  section.innerHTML = html;
+}
+
+function formatTime(sec) {
+  if (sec < 0) sec = 0;
+  const m = Math.floor(sec / 60);
+  const s = sec % 60;
+  if (m === 0) return `${s} 秒`;
+  if (s === 0) return `${m} 分`;
+  return `${m}:${String(s).padStart(2, '0')}`;
+}
+
+function adjustTimerDuration(delta) {
+  const newDur = Math.max(30, Math.min(1800, timerState.duration + delta));
+  timerState.duration = newDur;
+  timerState.remaining = newDur;
+  const config = getTimerConfig(timerState.exId);
+  config.duration = newDur;
+  updateTimerConfig(timerState.exId, config);
+  // 重新生成 cues
+  timerState.cues = generateCues(getExercise(timerState.exId), config);
+  renderTimer();
+}
+
+function setCuePreset(preset) {
+  const config = getTimerConfig(timerState.exId);
+  config.cuePreset = preset;
+  updateTimerConfig(timerState.exId, config);
+  timerState.cuePreset = preset;
+  timerState.cues = generateCues(getExercise(timerState.exId), config);
+  renderTimer();
+}
+
+function toggleTimerOption(key, val) {
+  const config = getTimerConfig(timerState.exId);
+  config[key] = val;
+  updateTimerConfig(timerState.exId, config);
+}
+
+async function startTimer() {
+  if (timerState.running) return;
+  timerState.running = true;
+
+  const config = getTimerConfig(timerState.exId);
+
+  // 初始化音频(必须在用户交互后)
+  initAudio();
+
+  // 申请屏幕常亮
+  if (config.keepAwake) {
+    await requestWakeLock();
+  }
+
+  timerState.intervalId = setInterval(() => {
+    timerState.remaining--;
+
+    // 检查节点提醒
+    timerState.cues.forEach(c => {
+      if (timerState.remaining === c.atSec && !timerState.triggeredCues.has(c.atSec)) {
+        timerState.triggeredCues.add(c.atSec);
+        triggerCue(c.text, config.sound);
+      }
+    });
+
+    if (timerState.remaining <= 0) {
+      finishTimer();
+    } else {
+      renderTimer();
+    }
+  }, 1000);
+
+  renderTimer();
+}
+
+function pauseTimer() {
+  if (!timerState.running) return;
+  clearInterval(timerState.intervalId);
+  timerState.running = false;
+  releaseWakeLock();
+  renderTimer();
+}
+
+function stopTimer() {
+  clearInterval(timerState.intervalId);
+  timerState.running = false;
+  timerState.remaining = timerState.duration;
+  timerState.triggeredCues.clear();
+  releaseWakeLock();
+  renderTimer();
+}
+
+function resetTimer() {
+  timerState.remaining = timerState.duration;
+  timerState.triggeredCues.clear();
+  renderTimer();
+}
+
+function finishTimer() {
+  clearInterval(timerState.intervalId);
+  timerState.running = false;
+  timerState.remaining = 0;
+  releaseWakeLock();
+
+  const config = getTimerConfig(timerState.exId);
+  const ex = getExercise(timerState.exId);
+
+  // 全屏闹钟
+  document.getElementById('alarmTitle').textContent = '完成 · ' + ex.name;
+  document.getElementById('alarmSub').textContent = `${formatTime(timerState.duration)} 已结束`;
+  document.getElementById('alarmFullscreen').classList.add('show');
+
+  // 持续闹铃声
+  if (config.sound) {
+    startAlarmSound();
+  }
+
+  renderTimer();
+}
+
+function dismissAlarm() {
+  document.getElementById('alarmFullscreen').classList.remove('show');
+  stopAlarmSound();
+  // 重置计时器到开始状态
+  timerState.remaining = timerState.duration;
+  timerState.triggeredCues.clear();
+  renderTimer();
+}
+
+function triggerCue(text, withSound) {
+  if (withSound) playBeep(2);
+  // 在计时器显示区下方临时显示文字
+  const display = document.querySelector('.timer-display');
+  if (display) {
+    display.classList.add('alerting');
+    setTimeout(() => display.classList.remove('alerting'), 800);
+  }
+  // 用浏览器通知(如果允许)
+  if (Notification && Notification.permission === 'granted') {
+    new Notification('Align', { body: text });
+  }
+}
+
+/* ============================================================
+   音频
+============================================================ */
+let alarmInterval = null;
+
+function initAudio() {
+  if (!timerState.audioCtx) {
+    try {
+      timerState.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    } catch (e) { console.warn('Audio not supported'); }
+  }
+  // iOS 需要 resume
+  if (timerState.audioCtx && timerState.audioCtx.state === 'suspended') {
+    timerState.audioCtx.resume();
+  }
+}
+
+function playBeep(times = 1, freq = 880, dur = 0.15) {
+  if (!timerState.audioCtx) return;
+  const ctx = timerState.audioCtx;
+  for (let i = 0; i < times; i++) {
+    setTimeout(() => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.frequency.value = freq;
+      osc.type = 'sine';
+      gain.gain.value = 0;
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      const t = ctx.currentTime;
+      gain.gain.linearRampToValueAtTime(0.4, t + 0.01);
+      gain.gain.linearRampToValueAtTime(0, t + dur);
+      osc.start(t);
+      osc.stop(t + dur);
+    }, i * 200);
+  }
+}
+
+function startAlarmSound() {
+  if (!timerState.audioCtx) return;
+  // 持续响铃模式:每 1 秒响 3 声
+  const ring = () => playBeep(3, 880, 0.18);
+  ring();
+  alarmInterval = setInterval(ring, 1500);
+}
+
+function stopAlarmSound() {
+  if (alarmInterval) {
+    clearInterval(alarmInterval);
+    alarmInterval = null;
+  }
+}
+
+/* ============================================================
+   屏幕常亮
+============================================================ */
+async function requestWakeLock() {
+  try {
+    if ('wakeLock' in navigator) {
+      wakeLock = await navigator.wakeLock.request('screen');
+      wakeLock.addEventListener('release', () => { wakeLock = null; });
+    }
+  } catch (e) {
+    console.warn('Wake Lock failed', e);
+  }
+}
+
+function releaseWakeLock() {
+  if (wakeLock) {
+    wakeLock.release().catch(() => {});
+    wakeLock = null;
+  }
+}
+
+// 页面切回前台时重新申请(浏览器会自动释放)
+document.addEventListener('visibilitychange', async () => {
+  if (document.visibilityState === 'visible' && timerState.running) {
+    const config = getTimerConfig(timerState.exId);
+    if (config.keepAwake) await requestWakeLock();
+  }
+});
+
+// 请求通知权限(可选)
+if ('Notification' in window && Notification.permission === 'default') {
+  // 不主动请求,等用户开始第一次计时再说(这里先留空)
+}
+
+/* ============================================================
+   计划页
+============================================================ */
+function renderPlan() {
+  const page = document.getElementById('page-plan');
+  let html = '';
+
+  // 当前进度
+  const start = new Date(state.startDate);
+  const now = new Date();
+  const daysIn = daysSinceStart();
+  const pct = Math.min(100, Math.round(daysIn / 84 * 100));
+
+  html += `<div class="streak-card" style="background: var(--bg-card); color: var(--ink); border: 1px solid var(--line);">
+    <div>
+      <div class="streak-num" style="color: var(--accent); font-size: 42px;">${daysIn}<span style="font-size: 20px; color: var(--ink-faint);"> / 84</span></div>
+      <div class="streak-label" style="color: var(--ink-faint);">计划总天数 · 第 ${weekNum()} 周</div>
+    </div>
+    <div style="font-family: var(--font-display); font-size: 28px; color: var(--ink-faint); font-style: italic;">${pct}%</div>
+  </div>`;
+
+  // 各阶段卡片
+  ['1', '2', '3', 'maintain'].forEach(pk => {
+    const phase = DAILY_PLAN[pk];
+    const isCurrent = String(state.currentPhase) === pk;
+    const phaseNum = pk === 'maintain' ? 'M' : pk;
+    html += `<div class="phase-card ${isCurrent ? 'current' : ''}">
+      <div class="phase-num">Phase ${phaseNum}</div>
+      <div class="phase-name">${phase.name}</div>
+      <div class="phase-weeks">${phase.weeks}</div>
+      <div class="phase-goal">"${phase.goal}"</div>
+      <div class="phase-counts">
+        <span>松解 <b>${phase.release.length}</b></span>
+        <span>训练 <b>${phase.training.length}</b></span>
+        <span>拉伸 <b>${phase.stretch.length}</b></span>
+      </div>
+    </div>`;
+  });
+
+  html += `<div class="divider-deco">· · ·</div>`;
+  html += `<div class="about-note">"你最大的优势是极精细的自我觉察<br>—— 这恰恰是 90% 的人做康复没效果的根本原因。<br>按节奏走,不要心急。"</div>`;
+
+  page.innerHTML = html;
+}
+
+/* ============================================================
+   历史页
+============================================================ */
+let calendarMonth = new Date();
+
+function renderHistory() {
+  const page = document.getElementById('page-history');
+  let html = '';
+
+  // 连续天数
+  const streak = streakDays();
+  const totalDays = Object.values(state.checkins).filter(c => Object.keys(c.doneIds || {}).length > 0).length;
+  html += `<div class="streak-card">
+    <div>
+      <div class="streak-num">${streak}</div>
+      <div class="streak-label">连续 · 共 ${totalDays} 天</div>
+    </div>
+    <div class="streak-emoji">${streak >= 7 ? '🔥' : streak >= 3 ? '✦' : '·'}</div>
+  </div>`;
+
+  // 日历
+  html += renderCalendar();
+
+  // 趋势图
+  html += renderMoodChart();
+
+  page.innerHTML = html;
+}
+
+function renderCalendar() {
+  const year = calendarMonth.getFullYear();
+  const month = calendarMonth.getMonth();
+  const firstDay = new Date(year, month, 1);
+  const lastDay = new Date(year, month + 1, 0);
+  const startWeekday = firstDay.getDay();
+  const daysInMonth = lastDay.getDate();
+  const todayStr = todayKey();
+
+  const weekdays = ['日','一','二','三','四','五','六'];
+
+  let cells = '';
+  for (let i = 0; i < startWeekday; i++) {
+    cells += `<div class="calendar-day empty"></div>`;
+  }
+
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const checkin = state.checkins[dateStr];
+    const doneCount = checkin ? Object.keys(checkin.doneIds || {}).length : 0;
+    const phase = DAILY_PLAN[state.currentPhase];
+    const totalCount = phase.morning.length + phase.release.length + phase.training.length + phase.stretch.length;
+    let level = 0;
+    if (doneCount > 0) {
+      const ratio = doneCount / totalCount;
+      if (ratio >= 0.9) level = 4;
+      else if (ratio >= 0.6) level = 3;
+      else if (ratio >= 0.3) level = 2;
+      else level = 1;
+    }
+    const isToday = dateStr === todayStr;
+    cells += `<div class="calendar-day lv-${level} ${isToday ? 'today' : ''}" title="${dateStr} · ${doneCount} 项">${d}</div>`;
+  }
+
+  return `<div class="calendar">
+    <div class="calendar-header">
+      <div class="calendar-title">${year} 年 ${month+1} 月</div>
+      <div class="calendar-nav">
+        <button onclick="navCalendar(-1)">‹</button>
+        <button onclick="navCalendar(1)">›</button>
+      </div>
+    </div>
+    <div class="calendar-grid">
+      ${weekdays.map(w => `<div class="calendar-weekday">${w}</div>`).join('')}
+      ${cells}
+    </div>
+    <div class="chart-legend" style="margin-top: 16px;">
+      <div class="legend-item"><span class="legend-dot" style="background:#f0e6d8;"></span>少量</div>
+      <div class="legend-item"><span class="legend-dot" style="background:#e0c5a2;"></span>部分</div>
+      <div class="legend-item"><span class="legend-dot" style="background:#c28b56;"></span>大部分</div>
+      <div class="legend-item"><span class="legend-dot" style="background:#8b4a20;"></span>完成</div>
+    </div>
+  </div>`;
+}
+
+function navCalendar(delta) {
+  calendarMonth.setMonth(calendarMonth.getMonth() + delta);
+  renderHistory();
+}
+
+function renderMoodChart() {
+  // 最近 14 天
+  const days = [];
+  for (let i = 13; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    days.push(d.toISOString().slice(0,10));
+  }
+
+  const series = {
+    cShape: { color: '#8b2e1a', label: '晨起 C 型', values: [] },
+    leftHipFwd: { color: '#b8871c', label: '左髋前送', values: [] },
+    leftKnee: { color: '#4a6b3a', label: '左膝疼痛', values: [] }
+  };
+
+  days.forEach(d => {
+    const mood = state.checkins[d]?.mood || {};
+    Object.keys(series).forEach(k => {
+      series[k].values.push(mood[k] ?? null);
+    });
+  });
+
+  // 检查是否有数据
+  const hasData = Object.values(series).some(s => s.values.some(v => v !== null));
+
+  if (!hasData) {
+    return `<div class="history-chart">
+      <div class="chart-title">感受趋势</div>
+      <div class="empty-state" style="padding: 24px 0;">
+        <div class="empty-title">还没有感受记录</div>
+        <div class="empty-sub">在今日页底部滑动 3 个指标并保存</div>
+      </div>
+    </div>`;
+  }
+
+  // SVG 折线图
+  const width = 320, height = 160, padL = 28, padR = 12, padT = 16, padB = 24;
+  const innerW = width - padL - padR;
+  const innerH = height - padT - padB;
+
+  let svg = `<svg class="chart-svg" viewBox="0 0 ${width} ${height}" preserveAspectRatio="xMidYMid meet">`;
+
+  // 横向网格
+  for (let y = 0; y <= 10; y += 2) {
+    const yPos = padT + innerH - (y / 10) * innerH;
+    svg += `<line x1="${padL}" y1="${yPos}" x2="${width - padR}" y2="${yPos}" stroke="#ede8dc" stroke-width="1"/>`;
+    svg += `<text x="${padL - 6}" y="${yPos + 3}" font-size="9" fill="#9a9284" text-anchor="end" font-family="Inter">${y}</text>`;
+  }
+
+  // 折线
+  Object.keys(series).forEach(k => {
+    const s = series[k];
+    const points = [];
+    s.values.forEach((v, i) => {
+      if (v !== null) {
+        const x = padL + (i / (days.length - 1)) * innerW;
+        const y = padT + innerH - (v / 10) * innerH;
+        points.push({ x, y });
+      }
+    });
+
+    // 连接线(含缺失值断开)
+    let pathSegments = [];
+    let currentPath = '';
+    s.values.forEach((v, i) => {
+      if (v !== null) {
+        const x = padL + (i / (days.length - 1)) * innerW;
+        const y = padT + innerH - (v / 10) * innerH;
+        currentPath += (currentPath ? 'L' : 'M') + x + ' ' + y + ' ';
+      } else {
+        if (currentPath) { pathSegments.push(currentPath); currentPath = ''; }
+      }
+    });
+    if (currentPath) pathSegments.push(currentPath);
+
+    pathSegments.forEach(p => {
+      svg += `<path d="${p}" stroke="${s.color}" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`;
+    });
+
+    points.forEach(p => {
+      svg += `<circle cx="${p.x}" cy="${p.y}" r="2.5" fill="${s.color}"/>`;
+    });
+  });
+
+  // X 轴标签(首尾)
+  svg += `<text x="${padL}" y="${height - 6}" font-size="9" fill="#9a9284" font-family="Inter">${days[0].slice(5)}</text>`;
+  svg += `<text x="${width - padR}" y="${height - 6}" font-size="9" fill="#9a9284" text-anchor="end" font-family="Inter">${days[days.length-1].slice(5)}</text>`;
+
+  svg += `</svg>`;
+
+  return `<div class="history-chart">
+    <div class="chart-title">最近 14 天 · 感受趋势</div>
+    ${svg}
+    <div class="chart-legend">
+      ${Object.values(series).map(s => `<div class="legend-item">
+        <span class="legend-dot" style="background:${s.color};"></span>${s.label}
+      </div>`).join('')}
+    </div>
+  </div>`;
+}
+
+/* ============================================================
+   我的页
+============================================================ */
+function renderSettings() {
+  const page = document.getElementById('page-settings');
+  const phase = DAILY_PLAN[state.currentPhase];
+  const start = new Date(state.startDate);
+  const totalDays = Object.values(state.checkins).filter(c => Object.keys(c.doneIds || {}).length > 0).length;
+
+  let html = `
+    <div class="section">
+      <div class="section-label">
+        <span class="section-label-num">Ⅰ</span>
+        <span class="section-label-text">当前阶段</span>
+      </div>
+      <div class="phase-switch">
+        <button class="${state.currentPhase == 1 ? 'active' : ''}" onclick="setPhase(1)">1</button>
+        <button class="${state.currentPhase == 2 ? 'active' : ''}" onclick="setPhase(2)">2</button>
+        <button class="${state.currentPhase == 3 ? 'active' : ''}" onclick="setPhase(3)">3</button>
+        <button class="${state.currentPhase == 'maintain' ? 'active' : ''}" onclick="setPhase('maintain')">维持</button>
+      </div>
+      <div class="settings-group">
+        <div class="settings-row">
+          <div class="settings-label">开始日期</div>
+          <div class="settings-value">${state.startDate}</div>
+        </div>
+        <div class="settings-row">
+          <div class="settings-label">已持续</div>
+          <div class="settings-value">${daysSinceStart()} 天</div>
+        </div>
+        <div class="settings-row">
+          <div class="settings-label">打卡天数</div>
+          <div class="settings-value">${totalDays}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-label">
+        <span class="section-label-num">Ⅱ</span>
+        <span class="section-label-text">数据</span>
+      </div>
+      <button class="btn-ghost" onclick="exportData()">导出备份(JSON)</button>
+      <button class="btn-ghost" onclick="importData()">恢复备份</button>
+      <button class="btn-ghost" onclick="resetStart()">重设开始日期</button>
+      <button class="btn-ghost" onclick="resetAllEdits()">恢复所有动作默认值</button>
+      <button class="btn-ghost danger" onclick="clearAll()">清空所有数据</button>
+    </div>
+
+    <div class="divider-deco">· · ·</div>
+    <div class="about-note">Align · v1.0<br>左侧力线康复打卡<br>本地存储 · 无需联网</div>
+    <input type="file" id="importFile" accept=".json" style="display:none;" onchange="handleImport(event)">
+  `;
+
+  page.innerHTML = html;
+}
+
+function setPhase(p) {
+  if (confirm(`切换到 ${DAILY_PLAN[p].name}?`)) {
+    state.currentPhase = p;
+    saveState();
+    renderAll();
+  }
+}
+
+function exportData() {
+  const fullData = {
+    state: state,
+    edits: userEdits,
+    exportedAt: new Date().toISOString(),
+    version: 'v1.1'
+  };
+  const blob = new Blob([JSON.stringify(fullData, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `align-backup-${todayKey()}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function importData() {
+  document.getElementById('importFile').click();
+}
+
+function handleImport(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (confirm('确认恢复?当前数据将被覆盖。')) {
+        // 兼容旧版(直接是 state)和新版({state, edits})
+        if (data.state) {
+          state = { ...DEFAULT_STATE, ...data.state };
+          if (data.edits) {
+            userEdits = data.edits;
+            saveEdits(userEdits);
+          }
+        } else {
+          state = { ...DEFAULT_STATE, ...data };
+        }
+        saveState();
+        renderAll();
+        alert('恢复成功');
+      }
+    } catch (err) {
+      alert('文件格式错误');
+    }
+  };
+  reader.readAsText(file);
+}
+
+function resetStart() {
+  const input = prompt('新的开始日期(YYYY-MM-DD):', state.startDate);
+  if (input && /^\d{4}-\d{2}-\d{2}$/.test(input)) {
+    state.startDate = input;
+    saveState();
+    renderAll();
+  }
+}
+
+function resetAllEdits() {
+  const count = Object.keys(userEdits).length;
+  if (count === 0) {
+    alert('当前没有任何编辑');
+    return;
+  }
+  if (confirm(`恢复 ${count} 个动作的默认设置(含计时器配置)?打卡历史不受影响。`)) {
+    userEdits = {};
+    saveEdits(userEdits);
+    renderAll();
+    alert('已重置所有动作编辑');
+  }
+}
+
+function clearAll() {
+  if (confirm('真的要清空所有打卡数据吗?此操作不可撤销。')) {
+    if (confirm('再确认一次 —— 所有历史都会消失。')) {
+      localStorage.removeItem(STORAGE_KEY);
+      state = loadState();
+      renderAll();
+    }
+  }
+}
+
+/* ============================================================
+   Tab 切换
+============================================================ */
+function switchTab(tab) {
+  document.querySelectorAll('.tab').forEach(el => {
+    el.classList.toggle('active', el.dataset.tab === tab);
+  });
+  document.querySelectorAll('.page').forEach(el => {
+    el.classList.add('hidden');
+  });
+  document.getElementById(`page-${tab}`).classList.remove('hidden');
+
+  if (tab === 'today') renderToday();
+  else if (tab === 'plan') renderPlan();
+  else if (tab === 'history') renderHistory();
+  else if (tab === 'settings') renderSettings();
+}
+
+function renderAll() {
+  renderHeader();
+  renderToday();
+  renderPlan();
+  renderHistory();
+  renderSettings();
+}
+
+function renderHeader() {
+  const phase = DAILY_PLAN[state.currentPhase];
+  const phaseNum = state.currentPhase === 'maintain' ? 'Maintain' : `Phase ${state.currentPhase}`;
+  document.getElementById('phaseLabel').textContent = `${phaseNum} · Week ${weekNum()}`;
+
+  const now = new Date();
+  const weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  document.getElementById('dateLabel').textContent = `${weekdays[now.getDay()]}, ${now.getMonth()+1}/${now.getDate()}`;
+}
+
+/* ============================================================
+   PWA 支持
+============================================================ */
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(err => console.warn('SW 注册失败', err));
+  });
+}
+
+/* ============================================================
+   启动
+============================================================ */
+renderAll();
+</script>
+
+</body>
+</html>
