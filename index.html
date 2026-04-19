@@ -419,16 +419,16 @@ input, textarea {
   inset: 0;
   z-index: 50;
   background: var(--bg);
-  overflow-y: auto;
   transform: translateY(100%);
   transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+  display: flex;
+  flex-direction: column;
 }
 
 .detail-overlay.open { transform: translateY(0); }
 
 .detail-header {
-  position: sticky;
-  top: 0;
+  flex-shrink: 0;
   background: var(--bg);
   padding: calc(var(--safe-top) + 12px) 20px 12px;
   border-bottom: 1px solid var(--line);
@@ -478,7 +478,10 @@ input, textarea {
 }
 
 .detail-body {
-  padding: 24px 20px 140px;
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 24px 20px 24px;
 }
 
 .detail-hero {
@@ -586,20 +589,11 @@ input, textarea {
 
 /* 详情页底部完成按钮 */
 .detail-action {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
+  flex-shrink: 0;
   padding: 12px 20px calc(12px + var(--safe-bottom));
-  background: linear-gradient(to top, var(--bg) 40%, rgba(245,241,232,0.85) 70%, transparent 100%);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  background: var(--bg);
+  border-top: 1px solid var(--line);
   z-index: 2;
-  pointer-events: none;
-}
-
-.detail-action > * {
-  pointer-events: auto;
 }
 
 .btn-primary {
