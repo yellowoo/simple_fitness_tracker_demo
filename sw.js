@@ -1,5 +1,6 @@
 // Service Worker - 让 App 离线可用
-const CACHE_NAME = 'align-v1';
+// 每次发新版改这个版本号,浏览器会丢弃旧缓存
+const CACHE_NAME = 'align-v1.3';
 const CORE_ASSETS = [
   './',
   './index.html',
@@ -23,14 +24,30 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
-  // 只缓存 GET 请求
   if (event.request.method !== 'GET') return;
 
+  // 对 index.html 和根路径:network-first(保证能看到新版)
+  const url = new URL(event.request.url);
+  const isHtml = url.pathname.endsWith('/') || url.pathname.endsWith('.html');
+
+  if (isHtml) {
+    event.respondWith(
+      fetch(event.request).then((response) => {
+        if (response.ok) {
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+        }
+        return response;
+      }).catch(() => caches.match(event.request).then(r => r || caches.match('./index.html')))
+    );
+    return;
+  }
+
+  // 其他静态资源:cache-first
   event.respondWith(
     caches.match(event.request).then((cached) => {
       if (cached) return cached;
       return fetch(event.request).then((response) => {
-        // 缓存成功的同源请求
         if (response.ok && event.request.url.startsWith(self.location.origin)) {
           const clone = response.clone();
           caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));

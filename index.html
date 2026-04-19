@@ -478,7 +478,7 @@ input, textarea {
 }
 
 .detail-body {
-  padding: 24px 20px 100px;
+  padding: 24px 20px 140px;
 }
 
 .detail-hero {
@@ -590,9 +590,16 @@ input, textarea {
   bottom: 0;
   left: 0;
   right: 0;
-  padding: 16px 20px calc(16px + var(--safe-bottom));
-  background: linear-gradient(to top, var(--bg) 70%, transparent);
+  padding: 12px 20px calc(12px + var(--safe-bottom));
+  background: linear-gradient(to top, var(--bg) 40%, rgba(245,241,232,0.85) 70%, transparent 100%);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   z-index: 2;
+  pointer-events: none;
+}
+
+.detail-action > * {
+  pointer-events: auto;
 }
 
 .btn-primary {
@@ -1842,7 +1849,11 @@ function getTotalSets(ex) {
 // 获取每组次数(展示用,可解析或编辑)
 function getRepsPerSet(ex) {
   if (!ex) return null;
-  if (ex.repsPerSet !== undefined && ex.repsPerSet !== null) return ex.repsPerSet;
+  if (ex.repsPerSet !== undefined && ex.repsPerSet !== null) {
+    // 用户编辑值(字符串)
+    if (typeof ex.repsPerSet === 'string') return { type: 'custom', display: ex.repsPerSet };
+    return ex.repsPerSet;
+  }
   const dur = ex.duration || '';
   // "12 次 × 3 组"
   const m = dur.match(/(\d+)\s*次\s*×/);
@@ -1853,20 +1864,71 @@ function getRepsPerSet(ex) {
   // "左右各 10 次 × 3 组"
   const m3 = dur.match(/左右各\s*(\d+)\s*次\s*×/);
   if (m3) return { type: 'each', value: parseInt(m3[1]), display: `左右各 ${m3[1]} 次` };
-  // "30-45 秒 × 3 组" 或 "20-30 秒 × 3 组"
+  // 秒/分 时长类
   const m4 = dur.match(/(\d+(?:-\d+)?)\s*秒\s*×/);
   if (m4) return { type: 'time', display: m4[1] + ' 秒' };
-  // "90 秒 × 2 组"
   const m5 = dur.match(/(\d+)\s*秒\s*×\s*\d+\s*组/);
   if (m5) return { type: 'time', display: m5[1] + ' 秒' };
+  const m6 = dur.match(/(\d+(?:-\d+)?)\s*分\s*×/);
+  if (m6) return { type: 'time', display: m6[1] + ' 分' };
   return null;
 }
 
-// 是否是分组类动作(训练 + 拉伸里多组的)
+// 每组时长(秒),仅对 time_sets 类型有意义
+function getPerSetDurationSec(ex) {
+  const reps = getRepsPerSet(ex);
+  if (!reps || (reps.type !== 'time' && reps.type !== 'custom')) return null;
+  const str = reps.display || '';
+  // 处理范围:"20-30 秒" -> 25
+  const rangeSec = str.match(/(\d+)\s*[-~]\s*(\d+)\s*秒/);
+  if (rangeSec) return Math.round((parseInt(rangeSec[1]) + parseInt(rangeSec[2])) / 2);
+  const sec = str.match(/(\d+)\s*秒/);
+  if (sec) return parseInt(sec[1]);
+  const rangeMin = str.match(/(\d+)\s*[-~]\s*(\d+)\s*分/);
+  if (rangeMin) return Math.round((parseInt(rangeMin[1]) + parseInt(rangeMin[2])) / 2) * 60;
+  const min = str.match(/(\d+)\s*分/);
+  if (min) return parseInt(min[1]) * 60;
+  return null;
+}
+
+// 统一的动作类型判定
+// 返回: 'reps_sets' | 'time_sets' | 'time_only' | 'single' (没有分组也没有时长,比如 "靠墙单腿站" 这种只有组数的要单独处理)
+function getExerciseType(ex) {
+  if (!ex) return 'single';
+  const totalSets = getTotalSets(ex);
+  const reps = getRepsPerSet(ex);
+  const dur = ex.duration || '';
+
+  // 明确的次数 × 组数
+  if (totalSets > 1 && reps && (reps.type === 'reps' || reps.type === 'asymmetric' || reps.type === 'each')) {
+    return 'reps_sets';
+  }
+  // 时长 × 组数(侧桥、髋屈肌拉伸、靠墙单腿站)
+  if (totalSets > 1 && reps && (reps.type === 'time' || (reps.type === 'custom' && getPerSetDurationSec(ex) !== null))) {
+    return 'time_sets';
+  }
+  // 只有组数,没有次数/时长(比如"3 组"的靠墙单腿站,默认每组 90 秒)
+  if (totalSets > 1) {
+    // 尝试看 duration 里有没有独立的时长描述
+    if (/秒|分钟|分/.test(dur)) return 'time_sets';
+    return 'reps_sets';
+  }
+  // 没有明确组数 - 纯时长类
+  if (parseDurationSeconds(dur) !== null) return 'time_only';
+  return 'single';
+}
+
+// 是否是分组类动作(兼容旧接口)
 function isMultiSetExercise(ex) {
+  const t = getExerciseType(ex);
+  return t === 'reps_sets' || t === 'time_sets';
+}
+
+// 是否需要计时器
+function shouldShowTimer(ex) {
   if (!ex) return false;
-  if (ex.category !== 'training' && ex.category !== 'stretch') return false;
-  return getTotalSets(ex) > 1;
+  const t = getExerciseType(ex);
+  return t === 'time_only' || t === 'time_sets';
 }
 
 function setDone(exId, val, quality=null) {
@@ -2325,9 +2387,9 @@ function renderDetail() {
   const body = editMode ? renderDetailEdit(ex) : renderDetailView(ex);
   document.getElementById('detailBody').innerHTML = body;
 
-  // 视图模式下绑定计时器(松解和拉伸都需要,训练动作的次数类不需要)
-  if (!editMode && (ex.category === 'release' || ex.category === 'stretch' || ex.category === 'morning')) {
-    if (parseDurationSeconds(ex.duration) !== null) {
+  // 视图模式下绑定计时器(由 shouldShowTimer 统一判断)
+  if (!editMode && shouldShowTimer(ex)) {
+    if (parseDurationSeconds(ex.duration) !== null || getPerSetDurationSec(ex) !== null) {
       mountTimer(ex);
     }
   }
@@ -2407,7 +2469,7 @@ function renderDetailView(ex) {
   }
 
   // 计时器挂载点
-  if ((ex.category === 'release' || ex.category === 'stretch' || ex.category === 'morning') && parseDurationSeconds(ex.duration) !== null) {
+  if (shouldShowTimer(ex) && (parseDurationSeconds(ex.duration) !== null || getPerSetDurationSec(ex) !== null)) {
     body += `<div class="timer-section" id="timerSection"></div>`;
   }
 
@@ -2675,7 +2737,14 @@ let wakeLock = null;
 
 function getTimerConfig(exId) {
   const ex = getExercise(exId);
-  const defaultDur = parseDurationSeconds(ex.duration) || 120;
+  // 对 time_sets 类型,默认时长是每组时长
+  const exType = getExerciseType(ex);
+  let defaultDur;
+  if (exType === 'time_sets') {
+    defaultDur = getPerSetDurationSec(ex) || parseDurationSeconds(ex.duration) || 60;
+  } else {
+    defaultDur = parseDurationSeconds(ex.duration) || 120;
+  }
   return ex.timerConfig || {
     duration: defaultDur,
     cuePreset: 'none',
@@ -2751,9 +2820,18 @@ function renderTimer() {
     .filter(c => c.atSec < timerState.remaining)
     .sort((a, b) => b.atSec - a.atSec)[0];
 
+  // 对 time_sets 类型,显示组进度
+  const exType = getExerciseType(ex);
+  const isTimeSets = exType === 'time_sets';
+  const totalSets = getTotalSets(ex);
+  const setsDone = getSetsDone(timerState.exId);
+  const currentSetLabel = isTimeSets
+    ? `第 ${Math.min(setsDone + 1, totalSets)} / ${totalSets} 组`
+    : '';
+
   let html = `<div class="section-label" style="margin-bottom: 12px;">
     <span class="section-label-num">⏱</span>
-    <span class="section-label-text">计时器</span>
+    <span class="section-label-text">计时器${currentSetLabel ? ' · ' + currentSetLabel : ''}</span>
     ${wakeLock ? '<span class="wakelock-badge">屏幕常亮</span>' : ''}
   </div>`;
 
@@ -2940,11 +3018,38 @@ function finishTimer() {
 
   const config = getTimerConfig(timerState.exId);
   const ex = getExercise(timerState.exId);
+  const exType = getExerciseType(ex);
+
+  // 对 time_sets 类型:完成一组
+  let justCompletedAll = false;
+  let currentSets = 0;
+  let totalSets = getTotalSets(ex);
+  if (exType === 'time_sets') {
+    justCompletedAll = incrementSet(timerState.exId);
+    currentSets = getSetsDone(timerState.exId);
+  }
 
   // 全屏闹钟
-  document.getElementById('alarmTitle').textContent = '完成 · ' + ex.name;
-  document.getElementById('alarmSub').textContent = `${formatTime(timerState.duration)} 已结束`;
+  let title, sub;
+  if (exType === 'time_sets') {
+    if (justCompletedAll) {
+      title = '全部完成 · ' + ex.name;
+      sub = `${totalSets} 组已结束`;
+    } else {
+      title = `第 ${currentSets} 组完成`;
+      sub = `还剩 ${totalSets - currentSets} 组`;
+    }
+  } else {
+    title = '完成 · ' + ex.name;
+    sub = `${formatTime(timerState.duration)} 已结束`;
+  }
+  document.getElementById('alarmTitle').textContent = title;
+  document.getElementById('alarmSub').textContent = sub;
   document.getElementById('alarmFullscreen').classList.add('show');
+
+  // 标记 - 关闭闹钟后的行为
+  timerState.exType = exType;
+  timerState.justCompletedAll = justCompletedAll;
 
   // 持续闹铃声
   if (config.sound) {
@@ -2960,7 +3065,20 @@ function dismissAlarm() {
   // 重置计时器到开始状态
   timerState.remaining = timerState.duration;
   timerState.triggeredCues.clear();
+
+  // time_sets 全部完成 -> 训练类弹质量分
+  if (timerState.exType === 'time_sets' && timerState.justCompletedAll) {
+    const ex = getExercise(timerState.exId);
+    if (ex && ex.category === 'training') {
+      setTimeout(() => openQualityModal(timerState.exId), 300);
+    }
+  }
+  timerState.justCompletedAll = false;
+  timerState.exType = null;
+
   renderTimer();
+  // 今日页的进度数字也要更新
+  renderToday();
 }
 
 function triggerCue(text, withSound) {
@@ -3487,9 +3605,64 @@ function renderHeader() {
 ============================================================ */
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js').catch(err => console.warn('SW 注册失败', err));
+    navigator.serviceWorker.register('sw.js').then((reg) => {
+      // 每次启动都检查更新
+      reg.update();
+      reg.addEventListener('updatefound', () => {
+        const newSW = reg.installing;
+        if (!newSW) return;
+        newSW.addEventListener('statechange', () => {
+          if (newSW.state === 'installed' && navigator.serviceWorker.controller) {
+            // 有新版本可用 - 提示用户
+            if (confirm('App 有新版本,是否立即刷新?')) {
+              newSW.postMessage({ type: 'SKIP_WAITING' });
+              window.location.reload();
+            }
+          }
+        });
+      });
+    }).catch(err => console.warn('SW 注册失败', err));
   });
 }
+
+/* ============================================================
+   日期变化和回前台自动刷新
+============================================================ */
+let lastRenderedDate = todayKey();
+
+function checkDateChange() {
+  const now = todayKey();
+  if (now !== lastRenderedDate) {
+    lastRenderedDate = now;
+    // 日期变了,整体刷新(今天的打卡状态会清零,因为新的一天)
+    renderAll();
+  }
+}
+
+// 每分钟检查一次日期
+setInterval(checkDateChange, 60 * 1000);
+
+// 从后台/锁屏回到前台时检查
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') {
+    checkDateChange();
+    // 即使日期没变,也刷新当前 Tab(避免时间状态过时)
+    const activeTab = document.querySelector('.tab.active')?.dataset.tab;
+    if (activeTab) {
+      renderHeader();
+      if (activeTab === 'today') renderToday();
+      else if (activeTab === 'history') renderHistory();
+    }
+  }
+});
+
+// 页面显示时也检查(iOS Safari 从 back-forward cache 恢复)
+window.addEventListener('pageshow', (e) => {
+  if (e.persisted) {
+    checkDateChange();
+    renderAll();
+  }
+});
 
 /* ============================================================
    启动
