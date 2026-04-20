@@ -1787,8 +1787,16 @@ function saveState() {
 
 let state = loadState();
 
+/* ============================================================
+   日期工具 - 使用本地时区
+============================================================ */
 function todayKey() {
-  return new Date().toISOString().slice(0,10);
+  // 必须用本地时区,不能用 toISOString(那是 UTC 时间)
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
 }
 
 function getCheckin(dateKey) {
@@ -2016,6 +2024,9 @@ function streakDays() {
    渲染 - 今日页
 ============================================================ */
 function renderToday() {
+  // 每次渲染今日页都主动确认日期（兜底，防止 iOS 不触发事件）
+  ensureTodayFresh();
+
   const phase = DAILY_PLAN[state.currentPhase];
   const page = document.getElementById('page-today');
 
@@ -3628,19 +3639,30 @@ function checkDateChange() {
   const now = todayKey();
   if (now !== lastRenderedDate) {
     lastRenderedDate = now;
-    // 日期变了,整体刷新(今天的打卡状态会清零,因为新的一天)
     renderAll();
+    return true;
+  }
+  return false;
+}
+
+// renderToday 内部也主动检查（兜底：即使事件没触发也能刷新）
+// 这个函数在 renderToday 开头调用
+function ensureTodayFresh() {
+  const now = todayKey();
+  if (now !== lastRenderedDate) {
+    lastRenderedDate = now;
+    // 不递归调用 renderAll，只更新 header 状态
+    renderHeader();
   }
 }
 
-// 每分钟检查一次日期
-setInterval(checkDateChange, 60 * 1000);
+// 每 30 秒检查（比之前的 60 秒更频繁）
+setInterval(checkDateChange, 30 * 1000);
 
 // 从后台/锁屏回到前台时检查
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'visible') {
     checkDateChange();
-    // 即使日期没变,也刷新当前 Tab(避免时间状态过时)
     const activeTab = document.querySelector('.tab.active')?.dataset.tab;
     if (activeTab) {
       renderHeader();
@@ -3650,12 +3672,16 @@ document.addEventListener('visibilitychange', () => {
   }
 });
 
-// 页面显示时也检查(iOS Safari 从 back-forward cache 恢复)
-window.addEventListener('pageshow', (e) => {
-  if (e.persisted) {
-    checkDateChange();
-    renderAll();
-  }
+// iOS PWA 从内存恢复时（比 visibilitychange 更可靠）
+window.addEventListener('pageshow', () => {
+  // 无论 persisted 是否为 true 都检查（iOS PWA 有时不设 persisted）
+  checkDateChange();
+  renderAll();
+});
+
+// focus 事件：用户点击屏幕激活 App 时
+window.addEventListener('focus', () => {
+  checkDateChange();
 });
 
 /* ============================================================

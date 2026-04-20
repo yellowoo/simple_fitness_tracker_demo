@@ -1,6 +1,6 @@
 // Service Worker - 让 App 离线可用
 // 每次发新版改这个版本号,浏览器会丢弃旧缓存
-const CACHE_NAME = 'align-v1.3.1';
+const CACHE_NAME = 'align-v1.3.2';
 const CORE_ASSETS = [
   './',
   './index.html',
